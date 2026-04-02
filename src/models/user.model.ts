@@ -1,13 +1,15 @@
-import { model, Schema, Document, CallbackWithoutResultAndOptionalError } from 'mongoose';
+import { model, Schema, Document } from 'mongoose';
 import bcrypt from 'bcrypt';
 export interface IUser extends Document {
   username: string;
   password: string;
+  refreshToken?: string | null;
 }
 
 const userSchema = new Schema<IUser>({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  refreshToken: { type: String, default: null }
 }, {
   timestamps: true,
   versionKey: false,

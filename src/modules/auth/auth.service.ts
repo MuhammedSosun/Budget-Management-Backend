@@ -1,5 +1,7 @@
 import { AuthRepository } from './auth.repository';
 import bcrypt from 'bcrypt';
+import { generateAccessToken, generateRefreshToken, verfiyRefreshToken } from "../../utils/token";
+import { userInfo } from 'node:os';
 
 export class AuthService {
   private authRepository = new AuthRepository();
@@ -16,7 +18,59 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new Error('Kullanıcı adı veya şifre hatalı!');
     }
-    return user;
+    const payload = {
+      userId: user._id.toString(),
+      username: user.username
+    }
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken({ userId: payload.userId });
+
+    user.refreshToken = refreshToken;
+
+    await user.save();
+    return {
+      user: {
+        id: user._id,
+        username: user.username
+      },
+      accessToken,
+      refreshToken
+    };
+  }
+  async refreshAccessToken(incomingRefreshToken: string) {
+
+    const decoded = verfiyRefreshToken(incomingRefreshToken);
+    if (!decoded) {
+      throw new Error("Geçersiz veya süresi dolmuş RefreshTOken ")
+    }
+
+    const user = await this.authRepository.findUserById(decoded.userId);
+    if (!user || user.refreshToken !== incomingRefreshToken) {
+      throw new Error('Refresh token eşleşmiyor veya kullanıcı bulunamadı');
+    }
+    const payload = {
+      userId: user._id.toString(),
+      username: user.username
+    }
+
+    const accessToken = generateAccessToken(payload);
+    const newRefreshToken = generateRefreshToken({
+      userId: user._id.toString()
+    })
+    user.refreshToken = newRefreshToken;
+    await user.save();
+
+    return { accessToken, newRefreshToken, user: payload };
+  }
+
+  async logout(userId: string) {
+    const user = await this.authRepository.findUserById(userId);
+    if (!user) {
+      throw new Error("Kullanıcı Bulunamadı")
+    }
+    user.refreshToken = null;
+    await user.save();
+    return { message: "Çıkış Başarılı" };
   }
   async findAll() {
     const users = await this.authRepository.findAll();

@@ -1,10 +1,14 @@
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const MONGO_URI =
-  'mongodb://admin:admin123@127.0.0.1:27017/budget-mongo?authSource=admin';
+const MONGO_URI = process.env.MONGO_URI as string;
+if (!MONGO_URI) {
+  throw new Error("HATA: .env dosyasında MONGO_URI tanımlanmamış!");
+}
 
 mongoose
-  .connect(MONGO_URI)
+  .connect(MONGO_URI!)
   .then(() => {
     console.log('Connected!');
   })
