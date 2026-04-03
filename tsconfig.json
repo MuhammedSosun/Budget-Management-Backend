@@ -10,10 +10,9 @@
     "noImplicitAny": true
   },
   "include": [
-    "src/**/*",
-    "src/**/*.d.ts"
+    "src/**/*"
   ],
-  "exclude": [
-    "./node_modules/**"
-  ]
+  "ts-node": {
+    "files": true
+  }
 }
