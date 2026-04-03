@@ -1,7 +1,6 @@
 import { AuthRepository } from './auth.repository';
 import bcrypt from 'bcrypt';
 import { generateAccessToken, generateRefreshToken, verfiyRefreshToken } from "../../utils/token";
-import { userInfo } from 'node:os';
 
 export class AuthService {
   private authRepository = new AuthRepository();
@@ -12,7 +11,7 @@ export class AuthService {
   async login(username: string, password: string) {
     const user = await this.authRepository.findUserByUsername(username);
     if (!user) {
-      throw new Error('user Not Found');
+      throw new Error('kullanıcı bulunamadı');
     }
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {

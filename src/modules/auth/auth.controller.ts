@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
-import { verfiyRefreshToken, generateAccessToken, generateRefreshToken } from "../../utils/token";
-import path from "node:path";
+
 
 const authService = new AuthService();
 
@@ -67,9 +66,10 @@ export const refresh = async (req: Request, res: Response) => {
 
 
 
-export const logout = async (req: Request, res: Response) => {
+export const logout = async (req: any, res: Response) => {
   try {
-    const userId = (req as any).user.userId;
+    const userId = req.user.userId;
+    console.log(req.user.userId);
     await authService.logout(userId);
 
     res.clearCookie("refreshToken", {

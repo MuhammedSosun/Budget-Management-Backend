@@ -15,7 +15,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
         return res.status(403).json({ message: "Geçersiz veya süresi dolmuş token." });
     }
 
-    (req as any).user = decoded;
+    req.user = decoded;
 
     next();
 }

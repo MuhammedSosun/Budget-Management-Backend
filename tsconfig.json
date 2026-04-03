@@ -10,6 +10,10 @@
     "noImplicitAny": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "src/**/*.d.ts"
+  ],
+  "exclude": [
+    "./node_modules/**"
   ]
 }
