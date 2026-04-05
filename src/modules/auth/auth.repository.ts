@@ -4,8 +4,8 @@ export class AuthRepository {
   createUser(userData: Partial<IUser>) {
     return User.create(userData);
   }
-  findUserByUsername(username: string) {
-    return User.findOne({ username: username })
+  findUserByEmail(email: string) {
+    return User.findOne({ email: email })
   }
   findAll() {
     return User.find({});

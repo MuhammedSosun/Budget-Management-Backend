@@ -1,17 +1,31 @@
 import { AuthRepository } from './auth.repository';
 import bcrypt from 'bcrypt';
 import { generateAccessToken, generateRefreshToken, verfiyRefreshToken } from "../../utils/token";
+import { RegisterRequest } from '../../types/auth.types';
+import User from '../../models/user.model';
+import { UserEntity } from '../../domains/entities/UserEntity';
 
 export class AuthService {
   private authRepository = new AuthRepository();
 
-  async register(username: string, password: string) {
-    return await this.authRepository.createUser({ username, password });
+  async register(data: RegisterRequest): Promise<UserEntity> {
+    const user = await this.authRepository.findUserByEmail(data.email);
+    if (user) {
+      throw new Error("Kullanıcı zaten mevcut")
+    }
+    const newUser = await User.create(data);
+    return {
+      id: newUser._id.toString(),
+      email: newUser.email,
+      firstName: newUser.firstName,
+      lastName: newUser.lastName,
+    };
+
   }
-  async login(username: string, password: string) {
-    const user = await this.authRepository.findUserByUsername(username);
+  async login(email: string, password: string): Promise<{ user: UserEntity, accessToken: string, refreshToken: string }> {
+    const user = await this.authRepository.findUserByEmail(email);
     if (!user) {
-      throw new Error('kullanıcı bulunamadı');
+      throw new Error('kullanıcı bulunamadı awdawd awda w');
     }
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
@@ -19,7 +33,7 @@ export class AuthService {
     }
     const payload = {
       userId: user._id.toString(),
-      username: user.username
+      email: user.email
     }
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken({ userId: payload.userId });
@@ -29,8 +43,10 @@ export class AuthService {
     await user.save();
     return {
       user: {
-        id: user._id,
-        username: user.username
+        id: user._id.toString(),
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName
       },
       accessToken,
       refreshToken
@@ -49,7 +65,7 @@ export class AuthService {
     }
     const payload = {
       userId: user._id.toString(),
-      username: user.username
+      email: user.email
     }
 
     const accessToken = generateAccessToken(payload);
@@ -85,13 +101,13 @@ export class AuthService {
     }
     return user;
   }
-  async updateUser(id: string, username: string, password: string) {
+  async updateUser(id: string, data: RegisterRequest) {
     const user = await this.authRepository.findUserById(id);
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(data.password, 10);
     if (!user) {
       throw new Error("Kullanıcı bulunamadı")
     }
-    const updatedUser = await this.authRepository.updateUser(id, { username, password: hashedPassword });
+    const updatedUser = await this.authRepository.updateUser(id, { email: data.email, password: hashedPassword, firstName: data.firstName, lastName: data.lastName });
     return updatedUser;
   }
 }

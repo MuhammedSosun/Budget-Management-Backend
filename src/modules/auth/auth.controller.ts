@@ -6,11 +6,10 @@ const authService = new AuthService();
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { username, password } = req.body;
-    const newUser = await authService.register(username, password);
+    const result = await authService.register(req.body);
     res.status(201).json({
       message: "Kullanıcı başarıyla oluşturuldu",
-      user: newUser,
+      data: result,
     });
   } catch (error: any) {
     res.status(400).json({ message: error.message, status: 400 });
@@ -21,16 +20,16 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
 
   try {
-    const { username, password } = req.body;
-    const result = await authService.login(username, password);
+    const request = req.body;
+    const result = await authService.login(request.email, request.password);
 
-    res.cookie("refreshToken", result.refreshToken), {
+    res.cookie("refreshToken", result.refreshToken, {
       httpOnly: true,
       secure: false,
       sameSite: "strict",
       path: "/",
       maxAge: 4 * 60 * 60 * 1000
-    }
+    });
 
     res.status(200).json({
       message: "Giriş başarılı",
@@ -66,7 +65,7 @@ export const refresh = async (req: Request, res: Response) => {
 
 
 
-export const logout = async (req: any, res: Response) => {
+export const logout = async (req: Request, res: Response) => {
   try {
     const userId = req.user.userId;
     console.log(req.user.userId);
@@ -113,8 +112,8 @@ export const updateUser = async (req: Request, res: Response) => {
 
   try {
     const { id } = req.params;
-    const { username, password } = req.body;
-    const updatedUser = await authService.updateUser(id as string, username, password);
+    const request = req.body;
+    const updatedUser = await authService.updateUser(id as string, request);
     res.status(200).json({
       message: "Kullanıcı başarıyla güncellendi",
       user: updatedUser,
