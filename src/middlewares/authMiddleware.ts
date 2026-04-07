@@ -3,11 +3,17 @@ import { verifyAccessToken } from "../utils/token";
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
+    let token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
+    console.log("gelen çerezler", req.cookies)
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!token && req.cookies) {
+        token = req.cookies.refreshToken;
+        console.log(token, "gelen token")
+    }
+    if (!token) {
+        console.log(token, "token bulunamadı ss")
         return res.status(403).json({ message: "Yetkisiz Erişim, Token bulunamadı" });
     }
-    const token = authHeader.split(" ")[1];
 
     const decoded = verifyAccessToken(token);
 
@@ -16,6 +22,5 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     }
 
     req.user = decoded;
-
     next();
 }

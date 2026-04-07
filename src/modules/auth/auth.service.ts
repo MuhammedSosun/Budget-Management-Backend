@@ -78,8 +78,8 @@ export class AuthService {
     return { accessToken, newRefreshToken, user: payload };
   }
 
-  async logout(userId: string) {
-    const user = await this.authRepository.findUserById(userId);
+  async logoutByToken(refreshToken: string) {
+    const user = await this.authRepository.findUserByRefreshToken(refreshToken);
     if (!user) {
       throw new Error("Kullanıcı Bulunamadı")
     }
@@ -104,10 +104,12 @@ export class AuthService {
   async updateUser(id: string, data: RegisterRequest) {
     const user = await this.authRepository.findUserById(id);
     const hashedPassword = await bcrypt.hash(data.password, 10);
+
     if (!user) {
       throw new Error("Kullanıcı bulunamadı")
     }
-    const updatedUser = await this.authRepository.updateUser(id, { email: data.email, password: hashedPassword, firstName: data.firstName, lastName: data.lastName });
+    const updatedUser = await this.authRepository.updateUser(id,
+      { email: data.email, password: hashedPassword, firstName: data.firstName, lastName: data.lastName });
     return updatedUser;
   }
 }

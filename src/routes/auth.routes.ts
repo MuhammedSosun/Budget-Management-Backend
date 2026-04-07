@@ -9,7 +9,7 @@ const router = Router();
 router.post('/register', validate(RegisterSchema), register);
 router.post('/login', login);
 router.post('/refreshToken', refresh)
-router.post('/logout', authMiddleware, logout);
+router.post('/logout', logout);
 router.get('/findAll', authMiddleware, findAll);
 router.delete('/delete/:id', authMiddleware, deleteUserById);
 router.put('/update/:id', validate(RegisterSchema), authMiddleware, updateUser);

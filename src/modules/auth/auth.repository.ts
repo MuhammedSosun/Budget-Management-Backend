@@ -7,6 +7,9 @@ export class AuthRepository {
   findUserByEmail(email: string) {
     return User.findOne({ email: email })
   }
+  findUserByRefreshToken(refreshToken: string) {
+    return User.findOne({ refreshToken: refreshToken })
+  }
   findAll() {
     return User.find({});
   }
