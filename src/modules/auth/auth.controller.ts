@@ -1,23 +1,24 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { AuthService } from "./auth.service";
+import { AuthRepository } from "./auth.repository";
 
 
-const authService = new AuthService();
-
-export const register = async (req: Request, res: Response) => {
+const authRepo = new AuthRepository();
+const authService = new AuthService(authRepo);
+export const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await authService.register(req.body);
     res.status(201).json({
       message: "Kullanıcı başarıyla oluşturuldu",
       data: result,
     });
-  } catch (error: any) {
-    res.status(400).json({ message: error.message, status: 400 });
+  } catch (error) {
+    next(error)
   }
 };
 
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response, next: NextFunction) => {
 
   try {
     const request = req.body;
@@ -37,11 +38,11 @@ export const login = async (req: Request, res: Response) => {
       user: result.user
 
     })
-  } catch (error: any) {
-    res.status(400).json({ message: error.message });
+  } catch (error) {
+    next(error)
   }
 }
-export const refresh = async (req: Request, res: Response) => {
+export const refresh = async (req: Request, res: Response, next: NextFunction) => {
   const token = req.cookies.refreshToken;
 
   if (!token) {
@@ -59,13 +60,13 @@ export const refresh = async (req: Request, res: Response) => {
     return res.status(200).json({ accessToken, user })
 
   } catch (error) {
-    return res.status(403).json({ message: "Token doğrulama hatası" });
+    next(error)
   }
 }
 
 
 
-export const logout = async (req: Request, res: Response) => {
+export const logout = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const refreshToken = req.cookies?.refreshToken;
 
@@ -80,49 +81,20 @@ export const logout = async (req: Request, res: Response) => {
       path: "/"
     });
     return res.status(200).json({ message: "Başarıyla çıkış yapıldı" });
-  } catch (error: any) {
-    return res.status(500).json({ message: "Çıkış yapılırken bir hata oluştu" });
+  } catch (error) {
+    next(error)
   }
 }
-
-export const findAll = async (req: Request, res: Response) => {
+export const me = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const users = await authService.findAll();
-    res.status(200).json({
-      message: "Kullanıcılar başarıyla getirildi",
-      user: users,
-    })
-  } catch (error: any) {
-    res.status(400).json({ message: error.message, status: 400 })
+    const result = await authService.getMe(req.user.userId);
+    return res.status(200).json(result);
+  } catch (error) {
+    next(error)
   }
 }
-export const deleteUserById = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    await authService.deleteUserById(id as string);
-    res.status(200).json({
-      message: "Kullanıcı başarıyla silindi",
-    })
 
-  } catch (error: any) {
-    res.status(400).json({ message: error.message, status: 400 })
-  }
 
-}
 
-export const updateUser = async (req: Request, res: Response) => {
-
-  try {
-    const { id } = req.params;
-    const request = req.body;
-    const updatedUser = await authService.updateUser(id as string, request);
-    res.status(200).json({
-      message: "Kullanıcı başarıyla güncellendi",
-      user: updatedUser,
-    })
-  } catch (error: any) {
-    res.status(400).json({ message: error.message, status: 400 })
-  }
-}
 
 
