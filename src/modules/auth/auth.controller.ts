@@ -34,7 +34,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 
     res.status(200).json({
       message: "Giriş başarılı",
-      accesToken: result.accessToken,
+      accessToken: result.accessToken,
       user: result.user
 
     })
