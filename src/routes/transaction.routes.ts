@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createTransaction, deleteTransaction, findAllTransactions, findTransactionById, totalExpense, totalIncome, updateTransaction } from "../modules/transaction/transaction.controller";
+import { createTransaction, deleteTransaction, findAllTransactions, findTransactionById, getCategoryStats, getTrendStats, totalExpense, totalIncome, updateTransaction } from "../modules/transaction/transaction.controller";
 import { validate } from "../middlewares/validations/validate.middleware";
 import { TransactionSchema } from "../modules/transaction/transaciton.validation";
 import { authMiddleware } from "../middlewares/Auth/AuthMiddleware";
@@ -13,6 +13,8 @@ router.put('/update/:id', authMiddleware, validate(TransactionSchema), updateTra
 router.get('/get/:id', authMiddleware, findTransactionById);
 router.get('/total-income', authMiddleware, totalIncome);
 router.get('/total-expense', authMiddleware, totalExpense);
+router.get('/category-stats', authMiddleware, getCategoryStats);
+router.get('/trend-stats', authMiddleware, getTrendStats);
 
 
 

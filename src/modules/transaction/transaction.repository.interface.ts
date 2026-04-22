@@ -5,4 +5,6 @@ export interface ITransactionRepository extends IBaseRepository<ITransaction> {
     findAllByUserId(userId: string, limit: number, offset: number, filters: any): Promise<{ transactions: ITransaction[], totalCount: number }>;
     totalIncome(userId: string): Promise<number>;
     totalExpense(userId: string): Promise<number>;
+    getCategoryStats(userId: string): Promise<{ name: string, value: number }[]>;
+    getTrendStats(userId: string, period: "weekly" | "monthly"): Promise<{ name: string, value: number }[]>;
 }

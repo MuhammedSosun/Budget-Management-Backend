@@ -115,3 +115,31 @@ export const totalExpense = async (req: Request, res: Response, next: NextFuncti
         next(error)
     }
 }
+
+export const getCategoryStats = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user.userId;
+        const result = await transactionService.getCategoryStats(userId);
+        res.status(200).json({
+            message: "Kategori istatistikleri bulundu",
+            data: result,
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+export const getTrendStats = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = (req as any).user.userId;
+        const period = (req.query.period as 'weekly' | 'monthly') || 'weekly';
+
+        const result = await transactionService.getTrendStats(userId, period);
+
+        res.status(200).json({
+            success: true,
+            data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+}

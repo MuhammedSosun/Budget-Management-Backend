@@ -49,6 +49,12 @@ export class TransactionService {
     async totalIncome(userId: string) {
         return this.transactionRepository.totalIncome(userId);
     }
+    async getCategoryStats(userId: string) {
+        return this.transactionRepository.getCategoryStats(userId);
+    }
+    async getTrendStats(userId: string, period: "weekly" | "monthly" = 'weekly') {
+        return this.transactionRepository.getTrendStats(userId, period);
+    }
 
 
 
