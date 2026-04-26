@@ -6,11 +6,11 @@ import dotenv from "dotenv"
 import { connectDB } from './db/mongo';
 import { notFoundHandler } from './middlewares/errors/not-found.middleware';
 import { errorHandler } from './middlewares/errors/error.middleware';
+import path from 'path';
 dotenv.config();
 const app: Application = express();
 
-
-
+app.use(express.static(path.join(__dirname, '../public')));
 connectDB();
 
 
