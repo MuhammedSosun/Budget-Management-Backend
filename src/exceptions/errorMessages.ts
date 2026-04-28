@@ -11,6 +11,7 @@ export enum ErrorMessages {
     TRANSACTION_NOT_FOUND = "İşlem bulunamadı",
     TRANSACTION_ALREADY_EXISTS = "İşlem zaten mevcut",
     VALIDATION_ERROR = "Geçersiz veri gönderildi",
-    INTERNAL_SERVER_ERROR = "Sunucu hatası oluştu"
+    INTERNAL_SERVER_ERROR = "Sunucu hatası oluştu",
+    RATE_LIMIT_EXCEEDED = "Çok hızlı işlem yapıyorsunuz, lütfen yavaşlayın."
 
 }
