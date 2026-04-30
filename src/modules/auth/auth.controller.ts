@@ -2,6 +2,12 @@ import { NextFunction, Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { AuthRepository } from "./auth.repository";
 
+const refreshTokenCookieOptions = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  path: "/",
+} as const;
 const authRepo = new AuthRepository();
 const authService = new AuthService(authRepo);
 export const register = async (
@@ -30,10 +36,7 @@ export const login = async (
     const result = await authService.login(request.email, request.password);
 
     res.cookie("refreshToken", result.refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
+      ...refreshTokenCookieOptions,
       maxAge: 4 * 60 * 60 * 1000,
     });
 
@@ -62,10 +65,8 @@ export const refresh = async (
     const { accessToken, newRefreshToken, user } =
       await authService.refreshAccessToken(token);
     res.cookie("refreshToken", newRefreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "strict",
-      path: "/",
+      ...refreshTokenCookieOptions,
+      maxAge: 4 * 60 * 60 * 1000,
     });
 
     return res.status(200).json({ accessToken, user });
@@ -86,12 +87,7 @@ export const logout = async (
       await authService.logoutByToken(refreshToken);
     }
 
-    res.clearCookie("refreshToken", {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-      path: "/",
-    });
+    res.clearCookie("refreshToken", refreshTokenCookieOptions);
     return res.status(200).json({ message: "Başarıyla çıkış yapıldı" });
   } catch (error) {
     next(error);

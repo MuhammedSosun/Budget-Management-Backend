@@ -23,6 +23,11 @@ export const idempotencyMiddleware = (
 
   res.json = function (body: IdempotencyResponseBody): Response {
     idempotencyStore.set(key, body);
+
+    setTimeout(() => {
+      idempotencyStore.delete(key);
+    }, 60 * 1000);
+
     return originalJson(body);
   };
 

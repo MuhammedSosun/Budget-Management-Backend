@@ -29,7 +29,7 @@ const generalLimiter = rateLimit({
 
 const strictLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
-  max: 15,
+  max: process.env.NODE_ENV === "development" ? 1000 : 15,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -37,7 +37,10 @@ const strictLimiter = rateLimit({
     message: "Çok hızlı işlem yapıyorsunuz, lütfen biraz bekleyin.",
   },
 });
-
+const refreshLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 100,
+});
 const allowedOrigins = ["http://localhost:5173", "http://dev.butcemx.com:5173"];
 
 app.use(express.json());
@@ -72,9 +75,10 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api", idempotencyMiddleware);
-app.use("/api/", generalLimiter);
-app.use("/api/auth", strictLimiter);
-app.use("/api/transactions", strictLimiter);
+app.use("/api", generalLimiter);
+app.use("/api/auth/login", strictLimiter);
+app.use("/api/auth/register", strictLimiter);
+app.use("/api/auth/refresh-token", refreshLimiter);
 
 setRoutes(app);
 
