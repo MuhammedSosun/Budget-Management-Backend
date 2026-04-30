@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="tr" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Bütçem | Gelir ve Giderlerini Kolayca Yönet</title>
+    <meta name="description"
+        content="Bütçem ile gelir, gider ve işlemlerini tek yerden yönet. Filtreleme, karanlık mod ve çoklu dil desteğiyle bütçeni daha kolay kontrol et." />
+    <meta name="robots" content="index, follow" />
+
+    <link rel="canonical" href="https://your-domain.com/tr/" />
+    <link rel="alternate" hreflang="tr" href="https://your-domain.com/tr/" />
+    <link rel="alternate" hreflang="en" href="https://your-domain.com/en/" />
+    <link rel="alternate" hreflang="x-default" href="https://your-domain.com/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Bütçem | Gelir ve Giderlerini Kolayca Yönet" />
+    <meta property="og:description"
+        content="Gelir, gider ve işlemlerini takip et. Temiz arayüz, dark mode ve çoklu dil desteğiyle bütçeni kontrol altına al." />
+    <meta property="og:image" content="/assets/images/og-cover.png" />
+    <meta property="og:url" content="https://your-domain.com/tr/" />
+
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="/style.css" />
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container navbar">
+            <a href="/tr/" class="brand" aria-label="Bütçem ana sayfa">Bütçem.</a>
+
+            <nav class="nav-links">
+                <a href="#preview">Önizleme</a>
+                <a href="#features">Özellikler</a>
+                <a href="#how-it-works">Nasıl Çalışır</a>
+            </nav>
+
+            <div class="nav-actions">
+                <select id="lang-select" class="lang-select" aria-label="Dil seçin">
+                    <option value="tr" selected>TR</option>
+                    <option value="en">EN</option>
+                </select>
+
+                <button id="theme-toggle" class="theme-toggle" aria-label="Tema değiştir">
+                    <span class="light-icon">☀️</span>
+                    <span class="dark-icon" style="display:none;">🌙</span>
+                </button>
+
+                <a href="#" class="btn btn-ghost js-auth-link" data-path="/login">Giriş Yap</a>
+                <a href="#" class="btn btn-primary js-auth-link" data-path="/register">Kayıt Ol</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero section">
+            <div class="container hero-grid">
+                <div class="hero-content">
+                    <span class="eyebrow">Kişisel bütçe yönetimini sadeleştir</span>
+
+                    <h1>
+                        Gelir ve giderlerini
+                        <span>tek ekrandan yönet.</span>
+                    </h1>
+
+                    <p class="hero-text">
+                        Bütçem ile işlemlerini kaydet, filtrele, analiz et ve finansal düzenini
+                        daha net gör. Dark mode ve çoklu dil desteğiyle sana uyum sağlayan
+                        modern bir bütçe deneyimi sunar.
+                    </p>
+
+                    <div class="hero-actions">
+                        <a href="#" class="btn btn-primary js-auth-link" data-path="/register">Ücretsiz Başla</a>
+                        <a href="#preview" class="btn btn-secondary">Ekranları İncele</a>
+                    </div>
+
+                    <ul class="hero-benefits" aria-label="Öne çıkan avantajlar">
+                        <li>Hızlı işlem yönetimi</li>
+                        <li>Filtreleme ve takip</li>
+                        <li>Dark mode ve çoklu dil desteği</li>
+                    </ul>
+                </div>
+
+                <div class="hero-visual" id="preview">
+                    <div class="hero-glow"></div>
+
+                    <div class="product-card">
+                        <div class="swiper mySwiper">
+                            <div class="swiper-wrapper">
+                                <div class="swiper-slide">
+                                    <img src="/assets/images/dashboard.png"
+                                        alt="Dashboard ekranında bütçe özeti ve analiz kartları" />
+                                    <div class="slide-caption">
+                                        <p class="slide-label">Dashboard</p>
+                                        <h3>Finansal durumunu tek bakışta gör</h3>
+                                    </div>
+                                </div>
+
+                                <div class="swiper-slide">
+                                    <img src="/assets/images/transactions.png"
+                                        alt="İşlem listesi ekranında gelir ve gider kayıtları" />
+                                    <div class="slide-caption">
+                                        <p class="slide-label">İşlem Yönetimi</p>
+                                        <h3>Her kaydı kolayca takip et</h3>
+                                    </div>
+                                </div>
+
+                                <div class="swiper-slide">
+                                    <img src="/assets/images/add-transaction.png"
+                                        alt="Bütçe planlama ekranında işlem ekleme formu" />
+                                    <div class="slide-caption">
+                                        <p class="slide-label">Planlama</p>
+                                        <h3>Bütçeni düzenli bir şekilde planla</h3>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="swiper-button-prev"></div>
+                            <div class="swiper-button-next"></div>
+                            <div class="swiper-pagination"></div>
+                        </div>
+                    </div>
+
+                    <div class="floating-card">
+                        <div class="floating-card__inner">
+                            <div class="floating-card__icon">📈</div>
+
+                            <div>
+                                <p class="floating-card__label">Analiz</p>
+                                <p class="floating-card__value">+12% Tasarruf</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="trust-strip">
+            <div class="container trust-items">
+                <span>CRUD işlem yönetimi</span>
+                <span>Filtreleme desteği</span>
+                <span>Dark mode</span>
+                <span>Çoklu dil altyapısı</span>
+                <span>Responsive arayüz</span>
+            </div>
+        </section>
+
+        <section class="section" id="features">
+            <div class="container section-heading">
+                <span class="eyebrow">Özellikler</span>
+                <h2>Bütçe takibini kolaylaştıran güçlü ama sade yapı</h2>
+                <p>
+                    Bütçem, teknik karmaşıklık yerine kullanıcı faydasına odaklanır.
+                    Gelir ve giderlerini daha anlaşılır, düzenli ve kontrollü yönetmeni sağlar.
+                </p>
+            </div>
+
+            <div class="container feature-grid">
+                <article class="feature-card">
+                    <h3>İşlem Ekle ve Düzenle</h3>
+                    <p>Gelir ve gider kayıtlarını hızlıca oluştur, güncelle ve yönet.</p>
+                </article>
+
+                <article class="feature-card">
+                    <h3>Akıllı Filtreleme</h3>
+                    <p>İşlemlerini tarih, kategori veya işlem tipine göre daha kolay incele.</p>
+                </article>
+
+                <article class="feature-card">
+                    <h3>Dashboard Özeti</h3>
+                    <p>Toplam bakiyeni, hareketlerini ve genel finansal görünümünü tek ekranda gör.</p>
+                </article>
+
+                <article class="feature-card">
+                    <h3>Dark Mode</h3>
+                    <p>Farklı kullanım tercihlerine uygun modern ve rahat bir arayüz deneyimi sunar.</p>
+                </article>
+
+                <article class="feature-card">
+                    <h3>Çoklu Dil Desteği</h3>
+                    <p>Farklı kullanıcı profillerine uyum sağlamak için çoklu dil desteğiyle tasarlanmıştır.</p>
+                </article>
+
+                <article class="feature-card">
+                    <h3>Temiz Kullanıcı Deneyimi</h3>
+                    <p>Karmaşık finans uygulamaları yerine sade ve anlaşılır bir kullanım akışı sunar.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section section-alt" id="how-it-works">
+            <div class="container section-heading">
+                <span class="eyebrow">Nasıl Çalışır</span>
+                <h2>Başlamak için yalnızca 3 adım yeterli</h2>
+            </div>
+
+            <div class="container steps-grid">
+                <article class="step-card">
+                    <span class="step-number">01</span>
+                    <h3>Hesabını oluştur</h3>
+                    <p>Kayıt olarak kişisel bütçe alanını oluşturmaya başla.</p>
+                </article>
+
+                <article class="step-card">
+                    <span class="step-number">02</span>
+                    <h3>Gelir ve giderlerini ekle</h3>
+                    <p>Finansal hareketlerini sisteme kaydet ve düzenli şekilde takip et.</p>
+                </article>
+
+                <article class="step-card">
+                    <span class="step-number">03</span>
+                    <h3>Durumunu analiz et</h3>
+                    <p>Dashboard ve filtreleme özellikleriyle bütçeni daha bilinçli yönet.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="container cta-box">
+                <div>
+                    <span class="eyebrow">Başlamaya hazır mısın?</span>
+                    <h2>Bütçeni daha kontrollü yönetmeye bugün başla.</h2>
+                    <p>
+                        Temiz arayüz, güçlü işlem yönetimi ve sade deneyimle finansal düzenini güçlendir.
+                    </p>
+                </div>
+
+                <div class="cta-actions">
+                    <a href="#" class="btn btn-primary js-auth-link" data-path="/register">Hesap Oluştur</a>
+                    <a href="#" class="btn btn-ghost js-auth-link" data-path="/login">Giriş Yap</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <div>
+                <a href="/tr/" class="brand">Bütçem.</a>
+                <p class="footer-text">
+                    Kişisel bütçe yönetimini daha sade, anlaşılır ve modern hale getiren web uygulaması.
+                </p>
+            </div>
+
+            <div class="footer-links">
+                <a href="#features">Özellikler</a>
+                <a href="#how-it-works">Nasıl Çalışır</a>
+                <a href="#" class="js-auth-link" data-path="/login">Giriş Yap</a>
+                <a href="#" class="js-auth-link" data-path="/register">Kayıt Ol</a>
+            </div>
+        </div>
+
+        <div class="container footer-bottom">
+            <p>&copy; 2026 Bütçem. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="/app.js"></script>
+</body>
+
+</html>

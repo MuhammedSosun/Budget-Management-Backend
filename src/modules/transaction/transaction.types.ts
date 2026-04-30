@@ -1,12 +1,12 @@
-import { Types } from "mongoose";
-
 export interface TransactionRequest {
-
-    title: string;
+  title: string;
+  input_details: {
     amount: number;
-    type: 'income' | 'expense';
-    category: string;
-    date: Date;
-    description?: string;
-    userId: string;
+    currency: "TRY" | "USD" | "EUR";
+  };
+  type: "income" | "expense";
+  category: string;
+  date: Date;
+  description?: string;
+  userId: string;
 }

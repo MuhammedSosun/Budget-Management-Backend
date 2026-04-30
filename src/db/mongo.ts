@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 export const connectDB = () => {
   const MONGO_URI = process.env.MONGO_URI as string;
@@ -9,10 +9,10 @@ export const connectDB = () => {
     mongoose
       .connect(MONGO_URI!)
       .then(() => {
-        console.log('Connected!');
+        console.log("Connected!");
       })
       .catch((err) => {
-        console.log(err);
+        console.error("Database connection failed:", err);
       });
   }
-}
+};

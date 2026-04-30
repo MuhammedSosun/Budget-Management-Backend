@@ -1,24 +1,24 @@
 interface PageableQuery {
-    page?: string;
-    size?: string;
-    [key: string]: any;
+  page?: string;
+  size?: string;
+  [key: string]: string | undefined;
 }
 
 interface PaginationResult {
-    limit: number;
-    offset: number;
-    page: number;
-    size: number;
+  limit: number;
+  offset: number;
+  page: number;
+  size: number;
 }
 
 const getPagination = (query: PageableQuery): PaginationResult => {
-    const page = parseInt(query.page || '1', 10) || 1;
-    const size = parseInt(query.size || '10', 10) || 10;
+  const page = parseInt(query.page || "1", 10) || 1;
+  const size = parseInt(query.size || "10", 10) || 10;
 
-    const limit = size;
-    const offset = (page - 1) * size;
+  const limit = size;
+  const offset = (page - 1) * size;
 
-    return { limit, offset, page, size };
+  return { limit, offset, page, size };
 };
 
 export default getPagination;

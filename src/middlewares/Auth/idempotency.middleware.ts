@@ -1,25 +1,30 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from "express";
 
+type IdempotencyResponseBody = unknown;
 
-const idempotencyStore = new Map<string, any>();
+const idempotencyStore = new Map<string, IdempotencyResponseBody>();
 
-export const idempotencyMiddleware = (req: Request, res: Response, next: NextFunction) => {
-    const key = req.headers['x-idempotency-key'] as string;
+export const idempotencyMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const key = req.headers["x-idempotency-key"] as string | undefined;
 
-    if (!key || (req.method !== 'POST' && req.method !== 'PUT')) {
-        return next();
-    }
+  if (!key || (req.method !== "POST" && req.method !== "PUT")) {
+    return next();
+  }
 
-    if (idempotencyStore.has(key)) {
-        console.log(`[Idempotency] Tekrarlanan istek yakalandı: ${key}`);
-        return res.status(200).json(idempotencyStore.get(key));
-    }
+  if (idempotencyStore.has(key)) {
+    return res.status(200).json(idempotencyStore.get(key));
+  }
 
-    const originalJson = res.json;
-    res.json = function (body): Response {
-        idempotencyStore.set(key, body);
-        return originalJson.call(this, body);
-    };
+  const originalJson = res.json.bind(res);
 
-    next();
+  res.json = function (body: IdempotencyResponseBody): Response {
+    idempotencyStore.set(key, body);
+    return originalJson(body);
+  };
+
+  return next();
 };

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Budgetly | Manage Your Income and Expenses Easily</title>
+    <meta name="description"
+        content="Budgetly helps you manage your income, expenses, and transactions in one place with filtering, dark mode, and multilingual support." />
+    <meta name="robots" content="index, follow" />
+
+    <link rel="canonical" href="https://your-domain.com/en/" />
+    <link rel="alternate" hreflang="tr" href="https://your-domain.com/tr/" />
+    <link rel="alternate" hreflang="en" href="https://your-domain.com/en/" />
+    <link rel="alternate" hreflang="x-default" href="https://your-domain.com/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Budgetly | Manage Your Income and Expenses Easily" />
+    <meta property="og:description"
+        content="Track your income, expenses, and transactions with a clean interface, dark mode, and multilingual support." />
+    <meta property="og:image" content="/assets/images/og-cover.png" />
+    <meta property="og:url" content="https://your-domain.com/en/" />
+
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="/style.css" />
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container navbar">
+            <a href="/en/" class="brand" aria-label="Budgetly homepage">Budgetly.</a>
+
+            <nav class="nav-links">
+                <a href="#preview">Preview</a>
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How It Works</a>
+            </nav>
+
+            <div class="nav-actions">
+                <select id="lang-select" class="lang-select" aria-label="Select language">
+                    <option value="tr">TR</option>
+                    <option value="en" selected>EN</option>
+                </select>
+
+                <button id="theme-toggle" class="theme-toggle" aria-label="Change theme">
+                    <span class="light-icon">☀️</span>
+                    <span class="dark-icon" style="display:none;">🌙</span>
+                </button>
+
+                <a href="#" class="btn btn-ghost js-auth-link" data-path="/login">Login</a>
+                <a href="#" class="btn btn-primary js-auth-link" data-path="/register">Sign Up</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero section">
+            <div class="container hero-grid">
+                <div class="hero-content">
+                    <span class="eyebrow">Simplify personal budget management</span>
+
+                    <h1>
+                        Manage your income and expenses
+                        <span>from a single dashboard.</span>
+                    </h1>
+
+                    <p class="hero-text">
+                        Budgetly helps you record, filter, analyze, and clearly understand your financial activity.
+                        With dark mode and multilingual support, it delivers a modern budget management experience
+                        that adapts to you.
+                    </p>
+
+                    <div class="hero-actions">
+                        <a href="#" class="btn btn-primary js-auth-link" data-path="/register">Start for Free</a>
+                        <a href="#preview" class="btn btn-secondary">Explore Screens</a>
+                    </div>
+
+                    <ul class="hero-benefits" aria-label="Main benefits">
+                        <li>Fast transaction management</li>
+                        <li>Filtering and tracking</li>
+                        <li>Dark mode and multilingual support</li>
+                    </ul>
+                </div>
+
+                <div class="hero-visual" id="preview">
+                    <div class="hero-glow"></div>
+
+                    <div class="product-card">
+                        <div class="swiper mySwiper">
+                            <div class="swiper-wrapper">
+                                <div class="swiper-slide">
+                                    <img src="/assets/images/dashboard.png"
+                                        alt="Dashboard screen showing budget summary and analysis cards" />
+                                    <div class="slide-caption">
+                                        <p class="slide-label">Dashboard</p>
+                                        <h3>See your financial status at a glance</h3>
+                                    </div>
+                                </div>
+
+                                <div class="swiper-slide">
+                                    <img src="/assets/images/transactions.png"
+                                        alt="Transaction list screen showing income and expense records" />
+                                    <div class="slide-caption">
+                                        <p class="slide-label">Transaction Management</p>
+                                        <h3>Track every record with ease</h3>
+                                    </div>
+                                </div>
+
+                                <div class="swiper-slide">
+                                    <img src="/assets/images/add-transaction.png"
+                                        alt="Budget planning screen with transaction form" />
+                                    <div class="slide-caption">
+                                        <p class="slide-label">Planning</p>
+                                        <h3>Plan your budget in a clear and organized way</h3>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="swiper-button-prev"></div>
+                            <div class="swiper-button-next"></div>
+                            <div class="swiper-pagination"></div>
+                        </div>
+                    </div>
+
+                    <div class="floating-card">
+                        <div class="floating-card__inner">
+                            <div class="floating-card__icon">📈</div>
+
+                            <div>
+                                <p class="floating-card__label">Analysis</p>
+                                <p class="floating-card__value">+12% Savings</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="trust-strip">
+            <div class="container trust-items">
+                <span>CRUD transaction management</span>
+                <span>Filtering support</span>
+                <span>Dark mode</span>
+                <span>Multilingual structure</span>
+                <span>Responsive interface</span>
+            </div>
+        </section>
+
+        <section class="section" id="features">
+            <div class="container section-heading">
+                <span class="eyebrow">Features</span>
+                <h2>A powerful yet simple structure for easier budget tracking</h2>
+                <p>
+                    Budgetly focuses on user value instead of technical complexity, helping people manage their
+                    financial activity with clarity and confidence.
+                </p>
+            </div>
+
+            <div class="container feature-grid">
+                <article class="feature-card">
+                    <h3>Add and Edit Transactions</h3>
+                    <p>Create, update, and manage your income and expense records quickly.</p>
+                </article>
+
+                <article class="feature-card">
+                    <h3>Smart Filtering</h3>
+                    <p>Review your transactions more easily by date, category, or transaction type.</p>
+                </article>
+
+                <article class="feature-card">
+                    <h3>Dashboard Summary</h3>
+                    <p>See your overall balance, activity, and financial overview from one screen.</p>
+                </article>
+
+                <article class="feature-card">
+                    <h3>Dark Mode</h3>
+                    <p>Enjoy a modern and comfortable interface for different usage preferences.</p>
+                </article>
+
+                <article class="feature-card">
+                    <h3>Multilingual Support</h3>
+                    <p>Built with multilingual support to adapt to different user profiles.</p>
+                </article>
+
+                <article class="feature-card">
+                    <h3>Clean User Experience</h3>
+                    <p>A simple and understandable flow instead of complex financial software.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section section-alt" id="how-it-works">
+            <div class="container section-heading">
+                <span class="eyebrow">How It Works</span>
+                <h2>Get started in only 3 steps</h2>
+            </div>
+
+            <div class="container steps-grid">
+                <article class="step-card">
+                    <span class="step-number">01</span>
+                    <h3>Create your account</h3>
+                    <p>Sign up and start building your personal budget space.</p>
+                </article>
+
+                <article class="step-card">
+                    <span class="step-number">02</span>
+                    <h3>Add your income and expenses</h3>
+                    <p>Record your financial activity and keep everything organized.</p>
+                </article>
+
+                <article class="step-card">
+                    <span class="step-number">03</span>
+                    <h3>Analyze your situation</h3>
+                    <p>Use the dashboard and filters to manage your budget more consciously.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="container cta-box">
+                <div>
+                    <span class="eyebrow">Ready to start?</span>
+                    <h2>Start managing your budget with more control today.</h2>
+                    <p>
+                        Strengthen your financial routine with a clean interface, powerful transaction management,
+                        and a simple user experience.
+                    </p>
+                </div>
+
+                <div class="cta-actions">
+                    <a href="#" class="btn btn-primary js-auth-link" data-path="/register">Create Account</a>
+                    <a href="#" class="btn btn-ghost js-auth-link" data-path="/login">Login</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <div>
+                <a href="/en/" class="brand">Budgetly.</a>
+                <p class="footer-text">
+                    A web application that makes personal budget management simpler, clearer, and more modern.
+                </p>
+            </div>
+
+            <div class="footer-links">
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#" class="js-auth-link" data-path="/login">Login</a>
+                <a href="#" class="js-auth-link" data-path="/register">Sign Up</a>
+            </div>
+        </div>
+
+        <div class="container footer-bottom">
+            <p>&copy; 2026 Budgetly. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="/app.js"></script>
+</body>
+
+</html>

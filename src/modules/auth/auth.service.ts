@@ -1,17 +1,21 @@
-import bcrypt from 'bcrypt';
-import { generateAccessToken, generateRefreshToken, verfiyRefreshToken } from "../../utils/token";
-import { RegisterRequest } from './auth.types';
-import { UserEntity } from '../../domains/entities/UserEntity';
-import { AppError } from '../../exceptions/AppError';
-import { ErrorMessages } from '../../exceptions/errorMessages';
-import { IAuthRepository } from './auth.repository.interface';
+import bcrypt from "bcrypt";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verfiyRefreshToken,
+} from "../../utils/token";
+import { RegisterRequest } from "./auth.types";
+import { UserEntity } from "../../domains/entities/UserEntity";
+import { AppError } from "../../exceptions/AppError";
+import { ErrorMessages } from "../../exceptions/errorMessages";
+import { IAuthRepository } from "./auth.repository.interface";
 
 export class AuthService {
-  constructor(private readonly authRepository: IAuthRepository) { }
+  constructor(private readonly authRepository: IAuthRepository) {}
   async register(data: RegisterRequest): Promise<UserEntity> {
     const user = await this.authRepository.findByEmail(data.email);
     if (user) {
-      throw new AppError(ErrorMessages.USER_ALREADY_EXISTS, 400)
+      throw new AppError(ErrorMessages.USER_ALREADY_EXISTS, 400);
     }
     const newUser = await this.authRepository.create(data);
     return {
@@ -20,21 +24,23 @@ export class AuthService {
       firstName: newUser.firstName,
       lastName: newUser.lastName,
     };
-
   }
-  async login(email: string, password: string): Promise<{ user: UserEntity, accessToken: string, refreshToken: string }> {
+  async login(
+    email: string,
+    password: string,
+  ): Promise<{ user: UserEntity; accessToken: string; refreshToken: string }> {
     const user = await this.authRepository.findByEmail(email);
     if (!user) {
-      throw new AppError(ErrorMessages.USER_NOT_FOUND, 404)
+      throw new AppError(ErrorMessages.USER_NOT_FOUND, 404);
     }
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new AppError(ErrorMessages.INVALID_CREDENTIALS, 401)
+      throw new AppError(ErrorMessages.INVALID_CREDENTIALS, 401);
     }
     const payload = {
       userId: user._id.toString(),
-      email: user.email
-    }
+      email: user.email,
+    };
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken({ userId: payload.userId });
 
@@ -46,32 +52,33 @@ export class AuthService {
         id: user._id.toString(),
         email: user.email,
         firstName: user.firstName,
-        lastName: user.lastName
+        lastName: user.lastName,
       },
       accessToken,
-      refreshToken
+      refreshToken,
     };
   }
   async refreshAccessToken(incomingRefreshToken: string) {
-
     const decoded = verfiyRefreshToken(incomingRefreshToken);
     if (!decoded) {
-      throw new AppError(ErrorMessages.INVALID_CREDENTIALS, 401)
+      throw new AppError(ErrorMessages.INVALID_CREDENTIALS, 401);
     }
 
     const user = await this.authRepository.findById(decoded.userId);
     if (!user || user.refreshToken !== incomingRefreshToken) {
-      throw new AppError(ErrorMessages.INVALID_CREDENTIALS, 401)
+      throw new AppError(ErrorMessages.INVALID_CREDENTIALS, 401);
     }
     const payload = {
       userId: user._id.toString(),
-      email: user.email
-    }
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
 
     const accessToken = generateAccessToken(payload);
     const newRefreshToken = generateRefreshToken({
-      userId: user._id.toString()
-    })
+      userId: user._id.toString(),
+    });
     user.refreshToken = newRefreshToken;
     await user.save();
 
@@ -81,7 +88,7 @@ export class AuthService {
   async logoutByToken(refreshToken: string) {
     const user = await this.authRepository.findByRefreshToken(refreshToken);
     if (!user) {
-      throw new AppError(ErrorMessages.USER_NOT_FOUND, 404)
+      throw new AppError(ErrorMessages.USER_NOT_FOUND, 404);
     }
     user.refreshToken = null;
     await user.save();
@@ -91,7 +98,7 @@ export class AuthService {
   async getMe(userId: string) {
     const user = await this.authRepository.findById(userId);
     if (!user) {
-      throw new AppError(ErrorMessages.USER_NOT_FOUND, 404)
+      throw new AppError(ErrorMessages.USER_NOT_FOUND, 404);
     }
     return {
       message: "Kullanıcı Başarıyla getirildi",
@@ -99,9 +106,8 @@ export class AuthService {
         id: user._id.toString(),
         email: user.email,
         firstName: user.firstName,
-        lastName: user.lastName
-      }
-    }
+        lastName: user.lastName,
+      },
+    };
   }
-
 }

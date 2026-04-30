@@ -1,11 +1,11 @@
 import { TokenPayload } from "../utils/token";
 
 declare global {
-    namespace Express {
-        interface Request {
-            user: TokenPayload
-        }
+  namespace Express {
+    interface Request {
+      user: TokenPayload;
     }
+  }
 }
 
-export { };
+export {};

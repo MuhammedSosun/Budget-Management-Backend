@@ -2,10 +2,13 @@ import { NextFunction, Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { AuthRepository } from "./auth.repository";
 
-
 const authRepo = new AuthRepository();
 const authService = new AuthService(authRepo);
-export const register = async (req: Request, res: Response, next: NextFunction) => {
+export const register = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const result = await authService.register(req.body);
     res.status(201).json({
@@ -13,60 +16,69 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
       data: result,
     });
   } catch (error) {
-    next(error)
+    next(error);
   }
 };
 
-
-export const login = async (req: Request, res: Response, next: NextFunction) => {
-
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const request = req.body;
     const result = await authService.login(request.email, request.password);
 
     res.cookie("refreshToken", result.refreshToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: "strict",
+      secure: true,
+      sameSite: "none",
       path: "/",
-      maxAge: 4 * 60 * 60 * 1000
+      maxAge: 4 * 60 * 60 * 1000,
     });
 
     res.status(200).json({
       message: "Giriş başarılı",
       accessToken: result.accessToken,
-      user: result.user
-
-    })
+      user: result.user,
+    });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
-export const refresh = async (req: Request, res: Response, next: NextFunction) => {
+};
+export const refresh = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const token = req.cookies.refreshToken;
 
   if (!token) {
-    return res.status(401).json({ message: "Oturum Süresi dolmuş lütfen tekrar giriş yapın" });
+    return res
+      .status(401)
+      .json({ message: "Oturum Süresi dolmuş lütfen tekrar giriş yapın" });
   }
   try {
-    const { accessToken, newRefreshToken, user } = await authService.refreshAccessToken(token);
-    res.cookie('refreshToken', newRefreshToken, {
+    const { accessToken, newRefreshToken, user } =
+      await authService.refreshAccessToken(token);
+    res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: false,
-      sameSite: 'strict',
-      path: '/'
+      sameSite: "strict",
+      path: "/",
     });
 
-    return res.status(200).json({ accessToken, user })
-
+    return res.status(200).json({ accessToken, user });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
 
-
-
-export const logout = async (req: Request, res: Response, next: NextFunction) => {
+export const logout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const refreshToken = req.cookies?.refreshToken;
 
@@ -76,25 +88,20 @@ export const logout = async (req: Request, res: Response, next: NextFunction) =>
 
     res.clearCookie("refreshToken", {
       httpOnly: true,
-      sameSite: "strict",
-      secure: false,
-      path: "/"
+      sameSite: "none",
+      secure: true,
+      path: "/",
     });
     return res.status(200).json({ message: "Başarıyla çıkış yapıldı" });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
 export const me = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await authService.getMe(req.user.userId);
     return res.status(200).json(result);
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
-
-
-
-
-
+};
