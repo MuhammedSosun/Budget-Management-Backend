@@ -51,6 +51,8 @@ export class TransactionService {
       category?: string;
       startDate?: string;
       endDate?: string;
+      search?: string;
+      filter?: "newest" | "oldest" | "7days" | "30days";
     },
   ) {
     const transactions = await this.transactionRepository.findAllByUserId(

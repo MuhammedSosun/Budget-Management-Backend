@@ -11,6 +11,8 @@ export interface ITransactionRepository extends IBaseRepository<ITransaction> {
       category?: string;
       startDate?: string;
       endDate?: string;
+      search?: string;
+      filter?: "newest" | "oldest" | "7days" | "30days";
     },
   ): Promise<{ transactions: ITransaction[]; totalCount: number }>;
   totalIncome(userId: string, currency: "TRY" | "USD" | "EUR"): Promise<number>;

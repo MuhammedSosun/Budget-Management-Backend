@@ -39,7 +39,14 @@ export const findAllTransactions = async (
         req.user.userId,
         limit,
         offset,
-        req.query,
+        req.query as {
+          type?: string;
+          category?: string;
+          startDate?: string;
+          endDate?: string;
+          search?: string;
+          filter?: "newest" | "oldest" | "7days" | "30days";
+        },
       );
     res.status(200).json({
       message: "İşlemler listelendi",

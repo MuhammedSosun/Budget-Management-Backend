@@ -19,28 +19,53 @@ export class TransactionRepository
       category?: string;
       startDate?: string;
       endDate?: string;
+      search?: string;
+      filter?: "newest" | "oldest" | "7days" | "30days";
     },
   ): Promise<{ transactions: ITransaction[]; totalCount: number }> {
     const query: Record<string, unknown> = { userId };
     if (filters.type) query.type = filters.type;
     if (filters.category) query.category = filters.category;
 
-    if (filters.startDate || filters.endDate) {
-      const dateFilter: { $gte?: Date; $lte?: Date } = {};
+    if (filters.search) {
+      const searchRegex = new RegExp(filters.search, "i");
+      query.$or = [
+        { title: searchRegex },
+        { description: searchRegex },
+        { category: searchRegex },
+      ];
+    }
 
-      if (filters.startDate) {
-        dateFilter.$gte = new Date(filters.startDate);
-      }
+    const dateFilter: { $gte?: Date; $lte?: Date } = {};
 
-      if (filters.endDate) {
-        dateFilter.$lte = new Date(filters.endDate);
-      }
+    if (filters.filter === "7days") {
+      const date = new Date();
+      date.setDate(date.getDate() - 7);
+      dateFilter.$gte = date;
+    } else if (filters.filter === "30days") {
+      const date = new Date();
+      date.setDate(date.getDate() - 30);
+      dateFilter.$gte = date;
+    }
+    if (filters.startDate) {
+      dateFilter.$gte = new Date(filters.startDate);
+    }
 
+    if (filters.endDate) {
+      dateFilter.$lte = new Date(filters.endDate);
+    }
+
+    if (Object.keys(dateFilter).length > 0) {
       query.date = dateFilter;
     }
 
+    const sortOption =
+      filters.filter === "oldest"
+        ? { date: 1 as const }
+        : { date: -1 as const };
+
     const [transactions, totalCount] = await Promise.all([
-      this.model.find(query).limit(limit).skip(offset).sort({ date: -1 }),
+      this.model.find(query).limit(limit).skip(offset).sort(sortOption),
       this.model.countDocuments(query),
     ]);
 
@@ -125,9 +150,9 @@ export class TransactionRepository
         "May",
         "Haz",
         "Tem",
-        "Ağu",
+        "Agu",
         "Eyl",
-        "Eki",
+        "Eke",
         "Kas",
         "Ara",
       ];
