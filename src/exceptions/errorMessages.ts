@@ -17,4 +17,10 @@ export enum ErrorMessages {
   ACCESS_TOKEN_INVALID = "Access token geçersiz",
   REFRESH_TOKEN_EXPIRED = "Refresh token süresi dolmuş",
   REFRESH_TOKEN_INVALID = "Refresh token geçersiz",
+  GOOGLE_LOGIN_FAILED = "Google ile giriş başarısız",
+  GOOGLE_SIGNUP_FAILED = "Google ile kayıt başarısız",
+  GOOGLE_USER_ALREADY_EXISTS_EMAIL = "Google ile giriş yap",
+  GOOGLE_USER_NOT_FOUND = "Google ile kayıt olunuz",
+  GOOGLE_ACCOUNT_IS_NOT_VERIFIED = "Google hesabı doğrulanmamış",
+  GOOGLE_EMAIL_ACCOUNT_IS_NOT_VERIFIED = "Google e-posta hesabı doğrulanmamış",
 }

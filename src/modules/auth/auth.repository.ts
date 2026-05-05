@@ -17,4 +17,7 @@ export class AuthRepository
   async findByRefreshToken(refreshToken: string): Promise<IUser | null> {
     return await this.model.findOne({ refreshToken }).exec();
   }
+  async findByGoogleId(googleId: string): Promise<IUser | null> {
+    return await this.model.findOne({ googleId }).exec();
+  }
 }

@@ -49,6 +49,32 @@ export const login = async (
     next(error);
   }
 };
+export const googleLogin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({
+        message: "Google credential zorunludur",
+      });
+    }
+    const result = await authService.googleLogin(credential);
+    res.cookie("refreshToken", result.refreshToken, {
+      ...refreshTokenCookieOptions,
+      maxAge: 4 * 60 * 60 * 1000,
+    });
+    res.status(200).json({
+      message: "Google ile başarıyla giriş yapıldı",
+      accessToken: result.accessToken,
+      user: result.user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 export const refresh = async (
   req: Request,
   res: Response,
