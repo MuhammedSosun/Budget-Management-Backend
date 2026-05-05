@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const FRONTEND_URL = "http://dev.butcemx.com:5173";
+  const FRONTEND_URL = "http://localhost:5173";
 
   const langSelect = document.getElementById("lang-select");
   const themeToggle = document.getElementById("theme-toggle");
