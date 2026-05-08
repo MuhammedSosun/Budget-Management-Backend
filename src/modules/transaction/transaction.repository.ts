@@ -129,6 +129,7 @@ export class TransactionRepository
       value: totals[category],
     }));
   }
+  //nasıl daha iyi bir çözüm sağlanır
   async getTrendStats(
     userId: string,
     period: "weekly" | "monthly" = "weekly",

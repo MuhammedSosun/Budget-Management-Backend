@@ -22,12 +22,7 @@ export class AuthService {
       throw new AppError(ErrorMessages.USER_ALREADY_EXISTS, 400);
     }
     const newUser = await this.authRepository.create(data);
-    return {
-      id: newUser._id.toString(),
-      email: newUser.email,
-      firstName: newUser.firstName,
-      lastName: newUser.lastName,
-    };
+    return this.mapUserResponse(newUser);
   }
   async login(
     email: string,
@@ -55,12 +50,7 @@ export class AuthService {
 
     await user.save();
     return {
-      user: {
-        id: user._id.toString(),
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      },
+      user: this.mapUserResponse(user),
       accessToken,
       refreshToken,
     };
@@ -120,12 +110,7 @@ export class AuthService {
     await user.save();
 
     return {
-      user: {
-        id: user._id.toString(),
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      },
+      user: this.mapUserResponse(user),
       accessToken,
       refreshToken,
     };
@@ -154,7 +139,7 @@ export class AuthService {
     user.refreshToken = newRefreshToken;
     await user.save();
 
-    return { accessToken, newRefreshToken, user: payload };
+    return { accessToken, newRefreshToken, user: this.mapUserResponse(user) };
   }
 
   async logoutByToken(refreshToken: string) {
@@ -174,12 +159,16 @@ export class AuthService {
     }
     return {
       message: "Kullanıcı Başarıyla getirildi",
-      user: {
-        id: user._id.toString(),
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      },
+      user: this.mapUserResponse(user),
+    };
+  }
+  private mapUserResponse(user: any): UserEntity {
+    return {
+      id: user._id.toString(),
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      avatarUrl: user.avatarUrl || "",
     };
   }
 }

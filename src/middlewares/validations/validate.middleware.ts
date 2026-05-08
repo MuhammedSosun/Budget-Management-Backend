@@ -4,7 +4,7 @@ import { ZodError, ZodObject, ZodIssue } from "zod";
 export const validate = (schema: ZodObject) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      schema.parse(req.body);
+      req.body = schema.parse(req.body);
       next();
     } catch (error) {
       if (error instanceof ZodError) {
@@ -16,6 +16,7 @@ export const validate = (schema: ZodObject) => {
           })),
         });
       }
+
       next(error);
     }
   };
