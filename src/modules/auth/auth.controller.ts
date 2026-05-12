@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { AuthRepository } from "./auth.repository";
+import { EmailVerificationRepository } from "./email-verification.repository";
 
 const refreshTokenCookieOptions = {
   httpOnly: true,
@@ -9,7 +10,8 @@ const refreshTokenCookieOptions = {
   path: "/",
 } as const;
 const authRepo = new AuthRepository();
-const authService = new AuthService(authRepo);
+const emailVerificationRepository = new EmailVerificationRepository();
+const authService = new AuthService(authRepo, emailVerificationRepository);
 export const register = async (
   req: Request,
   res: Response,
@@ -71,6 +73,37 @@ export const googleLogin = async (
       accessToken: result.accessToken,
       user: result.user,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+export const verifyEmail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { email, code } = req.body;
+
+    const result = await authService.verifyEmail(email, code);
+
+    return res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resendVerificationCode = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { email } = req.body;
+
+    const result = await authService.resendVerificationCode(email);
+
+    return res.status(200).json(result);
   } catch (error) {
     next(error);
   }

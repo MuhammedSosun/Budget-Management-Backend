@@ -1,9 +1,9 @@
+import dotenv from "dotenv";
 import express, { Application } from "express";
 import rateLimit from "express-rate-limit";
 import cors from "cors";
 import { setRoutes } from "./routes";
 import cookieParser from "cookie-parser";
-import dotenv from "dotenv";
 import { connectDB } from "./db/mongo";
 import { notFoundHandler } from "./middlewares/errors/not-found.middleware";
 import { errorHandler } from "./middlewares/errors/error.middleware";
@@ -26,7 +26,16 @@ const generalLimiter = rateLimit({
     message: "Çok fazla istek gönderdiniz, lütfen biraz dinlenin.",
   },
 });
-
+const mailLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: process.env.NODE_ENV === "development" ? 1000 : 1,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    status: 429,
+    message: "Yeni bir doğrulama kodu için lütfen 1 dakika bekleyin.",
+  },
+});
 const strictLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
   max: process.env.NODE_ENV === "development" ? 1000 : 15,
@@ -79,7 +88,8 @@ app.use("/api", generalLimiter);
 app.use("/api/auth/login", strictLimiter);
 app.use("/api/auth/register", strictLimiter);
 app.use("/api/auth/refresh-token", refreshLimiter);
-
+app.use("/api/auth/verify-email", strictLimiter);
+app.use("/api/auth/resend-verification", mailLimiter);
 setRoutes(app);
 
 app.use(notFoundHandler);

@@ -12,3 +12,13 @@ Backend tarafında profil işlemleri için ayrı bir `user` modülü oluşturuld
 
 
 Profil sayfasındaki metinler `i18n` yapısına bağlanarak Türkçe ve İngilizce dil desteği sağlandı.
+
+
+- Project Overview
+- Tech Stack
+- Current Features
+- Authentication
+- Profile & Settings
+- Avatar Upload with MinIO/S3
+- Dashboard & Transactions
+- Planned Features

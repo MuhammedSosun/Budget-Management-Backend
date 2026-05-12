@@ -9,7 +9,9 @@ export interface IUser extends Document {
   refreshToken?: string | null;
   authProvider: "local" | "google" | "both";
   googleId?: string;
-  isEmailVerified?: boolean;
+  isEmailVerified: boolean;
+  emailVerificationAttempts: number;
+  lastAttemptAt: Date;
 }
 
 const userSchema = new Schema<IUser>(
@@ -36,10 +38,7 @@ const userSchema = new Schema<IUser>(
       type: String,
       default: null,
     },
-    isEmailVerified: {
-      type: Boolean,
-      default: false,
-    },
+
     firstName: {
       type: String,
       required: true,
@@ -56,6 +55,17 @@ const userSchema = new Schema<IUser>(
     },
     avatarUrl: { type: String, default: "" },
     refreshToken: { type: String, default: null },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailVerificationAttempts: {
+      type: Number,
+      default: 0,
+    },
+    lastAttemptAt: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
