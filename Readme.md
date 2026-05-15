@@ -118,3 +118,11 @@ Backend login sırasında kullanıcının `isEmailVerified` değerini kontrol ed
 
 Bu durumda kullanıcıya önce e-posta adresini doğrulaması gerektiği bildirilir.
 
+
+
+Workspace Modülü Backend Mimarisi: 
+Backend’i user-based transaction yapısından workspace-based yapıya taşıdım. Önceden transactionlar userId ile filtreleniyordu, artık workspaceId ile yönetiliyor. Kullanıcı rollerini User modelinde tutmadım çünkü bir kullanıcı farklı workspace’lerde farklı rollere sahip olabilir. Bu yüzden WorkspaceMember modeli oluşturdum. Bu model userId, workspaceId ve role ilişkisini tutuyor.
+API tarafında generic bir requireWorkspaceRole middleware’i yazdım. JWT’den gelen userId ve route parametresinden gelen workspaceId ile kullanıcının ilgili workspace’teki rolünü kontrol ediyorum. Route’un izin verdiği rollerden birine sahipse işlem devam ediyor. Böylece OWNER, EDITOR ve VIEWER yetkilerini merkezi şekilde yönetiyorum.
+Transaction endpointlerini /api/workspaces/:workspaceId/transactions formatına taşıdım. workspaceId body’den değil route paramından, createdBy ise JWT’den geliyor. Bu sayede client manipülasyonunu engellemiş oldum.
+Workspace’e kullanıcı ekleme işlemini direkt member oluşturma yerine invitation sistemiyle çözdüm. Davetler PENDING, ACCEPTED, REJECTED, EXPIRED statüleriyle yönetiliyor. Aynı workspace ve email için tekrar pending davet oluşmasını engellemek adına partial unique index kullandım. Ayrıca workspaceId + userId compound index ile hem duplicate üyeliği engelledim hem de permission sorgularını hızlandırdım.
+

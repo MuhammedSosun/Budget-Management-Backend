@@ -2,6 +2,12 @@ import { NextFunction, Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { AuthRepository } from "./auth.repository";
 import { EmailVerificationRepository } from "./email-verification.repository";
+import { WorkspaceRepository } from "../workspace/workspace.repository";
+import { WorkspaceMemberRepository } from "../workspace/workspace-member/workspace-member.repository";
+import { WorkspaceService } from "../workspace/workspace.service";
+
+
+
 
 const refreshTokenCookieOptions = {
   httpOnly: true,
@@ -11,7 +17,21 @@ const refreshTokenCookieOptions = {
 } as const;
 const authRepo = new AuthRepository();
 const emailVerificationRepository = new EmailVerificationRepository();
-const authService = new AuthService(authRepo, emailVerificationRepository);
+
+const workspaceRepository = new WorkspaceRepository();
+const workspaceMemberRepository = new WorkspaceMemberRepository();
+
+const workspaceService = new WorkspaceService(
+  workspaceRepository,
+  workspaceMemberRepository,
+);
+
+const authService = new AuthService(
+  authRepo,
+  emailVerificationRepository,
+  workspaceService,
+);
+
 export const register = async (
   req: Request,
   res: Response,

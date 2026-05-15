@@ -13,27 +13,73 @@ import {
 import { validate } from "../middlewares/validations/validate.middleware";
 import { TransactionSchema } from "../modules/transaction/transaciton.validation";
 import { authMiddleware } from "../middlewares/Auth/AuthMiddleware";
+import { requireWorkspaceRole } from "../middlewares/workspace/requireWorkspaceRole.middleware";
 
-const router = Router();
+const router = Router({ mergeParams: true });
+
+router.get(
+  "/",
+  authMiddleware,
+  requireWorkspaceRole(["OWNER", "EDITOR", "VIEWER"]),
+  findAllTransactions,
+);
 
 router.post(
-  "/create",
+  "/",
   authMiddleware,
+  requireWorkspaceRole(["OWNER", "EDITOR"]),
   validate(TransactionSchema),
   createTransaction,
 );
-router.get("/get-all", authMiddleware, findAllTransactions);
-router.delete("/delete/:id", authMiddleware, deleteTransaction);
-router.put(
-  "/update/:id",
+
+router.get(
+  "/total-income",
   authMiddleware,
+  requireWorkspaceRole(["OWNER", "EDITOR", "VIEWER"]),
+  totalIncome,
+);
+
+router.get(
+  "/total-expense",
+  authMiddleware,
+  requireWorkspaceRole(["OWNER", "EDITOR", "VIEWER"]),
+  totalExpense,
+);
+
+router.get(
+  "/category-stats",
+  authMiddleware,
+  requireWorkspaceRole(["OWNER", "EDITOR", "VIEWER"]),
+  getCategoryStats,
+);
+
+router.get(
+  "/trend-stats",
+  authMiddleware,
+  requireWorkspaceRole(["OWNER", "EDITOR", "VIEWER"]),
+  getTrendStats,
+);
+
+router.get(
+  "/:id",
+  authMiddleware,
+  requireWorkspaceRole(["OWNER", "EDITOR", "VIEWER"]),
+  findTransactionById,
+);
+
+router.put(
+  "/:id",
+  authMiddleware,
+  requireWorkspaceRole(["OWNER", "EDITOR"]),
   validate(TransactionSchema),
   updateTransaction,
 );
-router.get("/get/:id", authMiddleware, findTransactionById);
-router.get("/total-income", authMiddleware, totalIncome);
-router.get("/total-expense", authMiddleware, totalExpense);
-router.get("/category-stats", authMiddleware, getCategoryStats);
-router.get("/trend-stats", authMiddleware, getTrendStats);
+
+router.delete(
+  "/:id",
+  authMiddleware,
+  requireWorkspaceRole(["OWNER", "EDITOR"]),
+  deleteTransaction,
+);
 
 export default router;

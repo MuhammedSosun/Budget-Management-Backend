@@ -19,4 +19,5 @@ export interface IUserRepository extends IBaseRepository<IUser> {
     hashedPassword: string,
     authProvider: "local" | "google" | "both",
   ): Promise<IUser | null>;
+  findByEmail(email: string): Promise<IUser | null>;
 }

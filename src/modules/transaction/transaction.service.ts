@@ -3,6 +3,7 @@ import { TransactionRequest } from "./transaction.types";
 import { AppError } from "../../exceptions/AppError";
 import { ErrorMessages } from "../../exceptions/errorMessages";
 import { ITransactionRepository } from "./transaction.repository.interface";
+import { CurrencyCode } from "../../models/transaction.model";
 
 export class TransactionService {
   private readonly rates = {
@@ -10,17 +11,23 @@ export class TransactionService {
     EUR_TRY: 34.96,
   };
 
-  constructor(private readonly transactionRepository: ITransactionRepository) {}
+  constructor(private readonly transactionRepository: ITransactionRepository) { }
+
   private calculateConversions(input_details: {
     amount: number;
-    currency: string;
+    currency: CurrencyCode;
   }) {
     const { amount, currency } = input_details;
+
     let amountInTRY = 0;
 
-    if (currency === "TRY") amountInTRY = amount;
-    else if (currency === "USD") amountInTRY = amount * this.rates.USD_TRY;
-    else if (currency === "EUR") amountInTRY = amount * this.rates.EUR_TRY;
+    if (currency === "TRY") {
+      amountInTRY = amount;
+    } else if (currency === "USD") {
+      amountInTRY = amount * this.rates.USD_TRY;
+    } else if (currency === "EUR") {
+      amountInTRY = amount * this.rates.EUR_TRY;
+    }
 
     return {
       TRY: Number(amountInTRY.toFixed(2)),
@@ -28,22 +35,26 @@ export class TransactionService {
       EUR: Number((amountInTRY / this.rates.EUR_TRY).toFixed(2)),
     };
   }
-  async createTransaction(transactionData: TransactionRequest) {
+
+  async createTransaction(
+    workspaceId: string,
+    createdBy: string,
+    transactionData: TransactionRequest,
+  ) {
     const conversions = this.calculateConversions(
       transactionData.input_details,
     );
 
-    const transaction = await this.transactionRepository.create({
+    return this.transactionRepository.create({
       ...transactionData,
       conversions,
-      userId: new Types.ObjectId(transactionData.userId),
+      workspaceId: new Types.ObjectId(workspaceId),
+      createdBy: new Types.ObjectId(createdBy),
     });
-
-    return transaction;
   }
 
-  async findAllByUserId(
-    userId: string,
+  async findAllByWorkspaceId(
+    workspaceId: string,
     limit: number,
     offset: number,
     query: {
@@ -55,54 +66,93 @@ export class TransactionService {
       filter?: "newest" | "oldest" | "7days" | "30days";
     },
   ) {
-    const transactions = await this.transactionRepository.findAllByUserId(
-      userId,
+    return this.transactionRepository.findAllByWorkspaceId(
+      workspaceId,
       limit,
       offset,
       query,
     );
-    if (!transactions) {
-      throw new AppError(ErrorMessages.TRANSACTION_NOT_FOUND, 404);
-    }
-    return transactions;
   }
-  async deleteTransaction(id: string) {
-    await this.findTransactionById(id);
-    return this.transactionRepository.delete(id);
-  }
-  async updateTransaction(id: string, transactionData: TransactionRequest) {
-    await this.findTransactionById(id);
+
+  async updateTransaction(
+    id: string,
+    workspaceId: string,
+    transactionData: TransactionRequest,
+  ) {
     const conversions = this.calculateConversions(
       transactionData.input_details,
     );
 
-    return this.transactionRepository.update(id, {
-      ...transactionData,
-      conversions,
-      userId: new Types.ObjectId(transactionData.userId),
-    });
+    const updatedTransaction =
+      await this.transactionRepository.updateByIdAndWorkspaceId(
+        id,
+        workspaceId,
+        {
+          title: transactionData.title,
+          input_details: transactionData.input_details,
+          conversions,
+          type: transactionData.type,
+          category: transactionData.category,
+          date: transactionData.date,
+          description: transactionData.description,
+        },
+      );
+
+    if (!updatedTransaction) {
+      throw new AppError(ErrorMessages.TRANSACTION_NOT_FOUND, 404);
+    }
+
+    return updatedTransaction;
   }
-  async findTransactionById(id: string) {
-    const transaction = await this.transactionRepository.findById(id);
+
+  async findTransactionById(id: string, workspaceId: string) {
+    const transaction = await this.transactionRepository.findByIdAndWorkspaceId(
+      id,
+      workspaceId,
+    );
+
     if (!transaction) {
       throw new AppError(ErrorMessages.TRANSACTION_NOT_FOUND, 404);
     }
+
     return transaction;
   }
-  async totalExpense(userId: string, currency: "TRY" | "USD" | "EUR") {
-    return this.transactionRepository.totalExpense(userId, currency);
+
+  async deleteTransaction(id: string, workspaceId: string) {
+    const deletedTransaction =
+      await this.transactionRepository.deleteByIdAndWorkspaceId(
+        id,
+        workspaceId,
+      );
+
+    if (!deletedTransaction) {
+      throw new AppError(ErrorMessages.TRANSACTION_NOT_FOUND, 404);
+    }
+
+    return deletedTransaction;
   }
-  async totalIncome(userId: string, currency: "TRY" | "USD" | "EUR") {
-    return this.transactionRepository.totalIncome(userId, currency);
+
+  async totalExpense(workspaceId: string, currency: CurrencyCode) {
+    return this.transactionRepository.totalExpense(workspaceId, currency);
   }
-  async getCategoryStats(userId: string, currency: "TRY" | "USD" | "EUR") {
-    return this.transactionRepository.getCategoryStats(userId, currency);
+
+  async totalIncome(workspaceId: string, currency: CurrencyCode) {
+    return this.transactionRepository.totalIncome(workspaceId, currency);
   }
+
+  async getCategoryStats(workspaceId: string, currency: CurrencyCode) {
+    return this.transactionRepository.getCategoryStats(workspaceId, currency);
+  }
+
   async getTrendStats(
-    userId: string,
+    workspaceId: string,
     period: "weekly" | "monthly" = "weekly",
-    currency: "TRY" | "USD" | "EUR" = "TRY",
+    currency: CurrencyCode = "TRY",
   ) {
-    return this.transactionRepository.getTrendStats(userId, period, currency);
+    return this.transactionRepository.getTrendStats(
+      workspaceId,
+      period,
+      currency,
+    );
   }
 }

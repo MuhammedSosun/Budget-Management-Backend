@@ -8,25 +8,32 @@ export const authMiddleware = (
   res: Response,
   next: NextFunction,
 ) => {
-  const authHeader = req.headers.authorization;
-  let token =
-    authHeader && authHeader.startsWith("Bearer ")
-      ? authHeader.split(" ")[1]
-      : null;
+  try {
+    const authHeader = req.headers.authorization;
 
-  if (!token && req.cookies) {
-    token = req.cookies.accessToken;
+    let token =
+      authHeader && authHeader.startsWith("Bearer ")
+        ? authHeader.split(" ")[1]
+        : null;
+
+    if (!token && req.cookies) {
+      token = req.cookies.accessToken;
+    }
+
+    if (!token) {
+      throw new AppError(ErrorMessages.TOKEN_NOT_FOUND, 401);
+    }
+
+    const decoded = verifyAccessToken(token);
+
+    if (!decoded) {
+      throw new AppError(ErrorMessages.INVALID_OR_EXPIRED_TOKEN, 401);
+    }
+
+    req.user = decoded;
+
+    next();
+  } catch (error) {
+    next(error);
   }
-  if (!token) {
-    throw new AppError(ErrorMessages.TOKEN_NOT_FOUND, 401);
-  }
-
-  const decoded = verifyAccessToken(token);
-
-  if (!decoded) {
-    throw new AppError(ErrorMessages.INVALID_OR_EXPIRED_TOKEN, 401);
-  }
-
-  req.user = decoded;
-  next();
 };

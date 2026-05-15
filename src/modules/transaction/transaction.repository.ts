@@ -1,17 +1,24 @@
-import Transaction, { ITransaction } from "../../models/transaction.model";
+import { Types } from "mongoose";
+import Transaction, {
+  CurrencyCode,
+  ITransaction,
+} from "../../models/transaction.model";
 import { BaseRepository } from "../../repository/mongoose/BaseRepository";
 import { ITransactionRepository } from "./transaction.repository.interface";
 
 export class TransactionRepository
   extends BaseRepository<ITransaction>
-  implements ITransactionRepository
-{
+  implements ITransactionRepository {
   constructor() {
     super(Transaction);
   }
 
-  async findAllByUserId(
-    userId: string,
+  private toObjectId(id: string): Types.ObjectId {
+    return new Types.ObjectId(id);
+  }
+
+  async findAllByWorkspaceId(
+    workspaceId: string,
     limit: number,
     offset: number,
     filters: {
@@ -23,12 +30,21 @@ export class TransactionRepository
       filter?: "newest" | "oldest" | "7days" | "30days";
     },
   ): Promise<{ transactions: ITransaction[]; totalCount: number }> {
-    const query: Record<string, unknown> = { userId };
-    if (filters.type) query.type = filters.type;
-    if (filters.category) query.category = filters.category;
+    const query: Record<string, unknown> = {
+      workspaceId: this.toObjectId(workspaceId),
+    };
+
+    if (filters.type) {
+      query.type = filters.type;
+    }
+
+    if (filters.category) {
+      query.category = filters.category;
+    }
 
     if (filters.search) {
       const searchRegex = new RegExp(filters.search, "i");
+
       query.$or = [
         { title: searchRegex },
         { description: searchRegex },
@@ -42,11 +58,14 @@ export class TransactionRepository
       const date = new Date();
       date.setDate(date.getDate() - 7);
       dateFilter.$gte = date;
-    } else if (filters.filter === "30days") {
+    }
+
+    if (filters.filter === "30days") {
       const date = new Date();
       date.setDate(date.getDate() - 30);
       dateFilter.$gte = date;
     }
+
     if (filters.startDate) {
       dateFilter.$gte = new Date(filters.startDate);
     }
@@ -65,130 +84,210 @@ export class TransactionRepository
         : { date: -1 as const };
 
     const [transactions, totalCount] = await Promise.all([
-      this.model.find(query).limit(limit).skip(offset).sort(sortOption),
-      this.model.countDocuments(query),
+      this.model.find(query).limit(limit).skip(offset).sort(sortOption).exec(),
+      this.model.countDocuments(query).exec(),
     ]);
 
-    return { transactions, totalCount };
+    return {
+      transactions,
+      totalCount,
+    };
+  }
+
+  async findByIdAndWorkspaceId(
+    transactionId: string,
+    workspaceId: string,
+  ): Promise<ITransaction | null> {
+    return this.model
+      .findOne({
+        _id: this.toObjectId(transactionId),
+        workspaceId: this.toObjectId(workspaceId),
+      })
+      .exec();
+  }
+
+  async updateByIdAndWorkspaceId(
+    transactionId: string,
+    workspaceId: string,
+    data: Partial<ITransaction>,
+  ): Promise<ITransaction | null> {
+    return this.model
+      .findOneAndUpdate(
+        {
+          _id: this.toObjectId(transactionId),
+          workspaceId: this.toObjectId(workspaceId),
+        },
+        data,
+        {
+          new: true,
+          runValidators: true,
+        },
+      )
+      .exec();
+  }
+
+  async deleteByIdAndWorkspaceId(
+    transactionId: string,
+    workspaceId: string,
+  ): Promise<ITransaction | null> {
+    return this.model
+      .findOneAndDelete({
+        _id: this.toObjectId(transactionId),
+        workspaceId: this.toObjectId(workspaceId),
+      })
+      .exec();
   }
 
   async totalIncome(
-    userId: string,
-    currency: "TRY" | "USD" | "EUR" = "TRY",
+    workspaceId: string,
+    currency: CurrencyCode = "TRY",
   ): Promise<number> {
     const transactions = await this.model
-      .find({ userId, type: "income" })
+      .find({
+        workspaceId: this.toObjectId(workspaceId),
+        type: "income",
+      })
       .select("conversions")
       .exec();
+
     let total = 0;
-    for (let i = 0; i < transactions.length; i++) {
-      total += transactions[i].conversions[currency];
+
+    for (const transaction of transactions) {
+      total += transaction.conversions[currency] || 0;
     }
+
     return total;
   }
 
   async totalExpense(
-    userId: string,
-    currency: "TRY" | "USD" | "EUR" = "TRY",
+    workspaceId: string,
+    currency: CurrencyCode = "TRY",
   ): Promise<number> {
     const transactions = await this.model
-      .find({ userId, type: "expense" })
+      .find({
+        workspaceId: this.toObjectId(workspaceId),
+        type: "expense",
+      })
       .select("conversions")
       .exec();
+
     let total = 0;
-    for (let i = 0; i < transactions.length; i++) {
-      total += transactions[i].conversions[currency];
+
+    for (const transaction of transactions) {
+      total += transaction.conversions[currency] || 0;
     }
+
     return total;
   }
+
   async getCategoryStats(
-    userId: string,
-    currency: "TRY" | "USD" | "EUR" = "TRY",
+    workspaceId: string,
+    currency: CurrencyCode = "TRY",
   ): Promise<{ name: string; value: number }[]> {
     const transactions = await this.model
-      .find({ userId, type: "expense" })
+      .find({
+        workspaceId: this.toObjectId(workspaceId),
+        type: "expense",
+      })
       .select("conversions category")
       .exec();
+
     const totals: Record<string, number> = {};
 
-    for (let i = 0; i < transactions.length; i++) {
-      const item = transactions[i];
-      const category = (item.category || "Diğer").trim().toLowerCase();
-      const formattedCategory =
-        category.charAt(0).toUpperCase() + category.slice(1);
-      const amount = item.conversions[currency] || 0;
+    for (const transaction of transactions) {
+      const normalizedCategory = (transaction.category || "Diğer")
+        .trim()
+        .toLowerCase();
 
-      if (totals[formattedCategory]) {
-        totals[formattedCategory] += amount;
-      } else {
-        totals[formattedCategory] = amount;
-      }
+      const formattedCategory =
+        normalizedCategory.charAt(0).toUpperCase() +
+        normalizedCategory.slice(1);
+
+      const amount = transaction.conversions[currency] || 0;
+
+      totals[formattedCategory] = (totals[formattedCategory] || 0) + amount;
     }
+
     return Object.keys(totals).map((category) => ({
       name: category,
       value: totals[category],
     }));
   }
-  //nasıl daha iyi bir çözüm sağlanır
+
   async getTrendStats(
-    userId: string,
+    workspaceId: string,
     period: "weekly" | "monthly" = "weekly",
-    currency: "TRY" | "USD" | "EUR" = "TRY",
-  ) {
+    currency: CurrencyCode = "TRY",
+  ): Promise<{ name: string; value: number }[]> {
     const now = new Date();
     const startDate = new Date();
-    let labels: string[];
+
+    const labels =
+      period === "weekly"
+        ? ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"]
+        : [
+          "Oca",
+          "Şub",
+          "Mar",
+          "Nis",
+          "May",
+          "Haz",
+          "Tem",
+          "Ağu",
+          "Eyl",
+          "Eki",
+          "Kas",
+          "Ara",
+        ];
+
+    const totals = labels.map((label) => ({
+      name: label,
+      value: 0,
+    }));
+
     if (period === "weekly") {
       startDate.setDate(now.getDate() - 7);
-      labels = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
     } else {
       startDate.setFullYear(now.getFullYear() - 1);
-      labels = [
-        "Oca",
-        "Şub",
-        "Mar",
-        "Nis",
-        "May",
-        "Haz",
-        "Tem",
-        "Agu",
-        "Eyl",
-        "Eke",
-        "Kas",
-        "Ara",
-      ];
     }
 
     const transactions = await this.model
-      .find({ userId, type: "expense", date: { $gte: startDate } })
+      .find({
+        workspaceId: this.toObjectId(workspaceId),
+        type: "expense",
+        date: { $gte: startDate },
+      })
       .select("conversions date")
       .exec();
 
-    const totals: Record<string, number> = {};
-    labels.forEach((day) => {
-      totals[day] = 0;
-    });
-    for (let i = 0; i < transactions.length; i++) {
-      const item = transactions[i];
-      let labelName: string;
+    for (const transaction of transactions) {
+      const amount = transaction.conversions[currency] || 0;
+
       if (period === "weekly") {
-        labelName = new Intl.DateTimeFormat("tr-TR", { weekday: "short" })
-          .format(item.date)
-          .replace(".", "");
+        const jsDay = transaction.date.getDay();
+
+        /**
+         * JavaScript getDay():
+         * 0 = Pazar
+         * 1 = Pazartesi
+         * 2 = Salı
+         *
+         * Bizim labels dizimiz:
+         * 0 = Pzt
+         * 1 = Sal
+         * ...
+         * 6 = Paz
+         */
+        const mondayBasedIndex = jsDay === 0 ? 6 : jsDay - 1;
+
+        totals[mondayBasedIndex].value += amount;
       } else {
-        labelName = new Intl.DateTimeFormat("tr-TR", { month: "short" })
-          .format(item.date)
-          .replace(".", "");
-        labelName = labelName.charAt(0).toUpperCase() + labelName.slice(1);
-      }
-      const amount = item.conversions[currency] || 0;
-      if (Object.prototype.hasOwnProperty.call(totals, labelName)) {
-        totals[labelName] += amount;
+        const monthIndex = transaction.date.getMonth();
+
+        totals[monthIndex].value += amount;
       }
     }
-    return labels.map((label) => ({
-      name: label,
-      value: totals[label],
-    }));
+
+    return totals;
   }
 }

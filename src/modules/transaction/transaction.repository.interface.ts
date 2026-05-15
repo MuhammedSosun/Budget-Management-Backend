@@ -1,9 +1,9 @@
 import { IBaseRepository } from "../../repository/IBaseRepository";
-import { ITransaction } from "../../models/transaction.model";
+import { CurrencyCode, ITransaction } from "../../models/transaction.model";
 
 export interface ITransactionRepository extends IBaseRepository<ITransaction> {
-  findAllByUserId(
-    userId: string,
+  findAllByWorkspaceId(
+    workspaceId: string,
     limit: number,
     offset: number,
     filters: {
@@ -15,18 +15,35 @@ export interface ITransactionRepository extends IBaseRepository<ITransaction> {
       filter?: "newest" | "oldest" | "7days" | "30days";
     },
   ): Promise<{ transactions: ITransaction[]; totalCount: number }>;
-  totalIncome(userId: string, currency: "TRY" | "USD" | "EUR"): Promise<number>;
+  findByIdAndWorkspaceId(
+    transactionId: string,
+    workspaceId: string,
+  ): Promise<ITransaction | null>;
+  totalIncome(
+    workspaceId: string,
+    currency: CurrencyCode,
+  ): Promise<number>;
   totalExpense(
-    userId: string,
-    currency: "TRY" | "USD" | "EUR",
+    workspaceId: string,
+    currency: CurrencyCode,
   ): Promise<number>;
   getCategoryStats(
-    userId: string,
-    currency: "TRY" | "USD" | "EUR",
+    workspaceId: string,
+    currency: CurrencyCode,
   ): Promise<{ name: string; value: number }[]>;
   getTrendStats(
-    userId: string,
+    workspaceId: string,
     period: "weekly" | "monthly",
-    currency: "TRY" | "USD" | "EUR",
+    currency: CurrencyCode,
   ): Promise<{ name: string; value: number }[]>;
+  updateByIdAndWorkspaceId(
+    transactionId: string,
+    workspaceId: string,
+    data: Partial<ITransaction>,
+  ): Promise<ITransaction | null>;
+
+  deleteByIdAndWorkspaceId(
+    transactionId: string,
+    workspaceId: string,
+  ): Promise<ITransaction | null>;
 }

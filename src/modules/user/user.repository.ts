@@ -4,8 +4,7 @@ import { IUserRepository } from "./user.repository.interface";
 
 export class UserRepository
   extends BaseRepository<IUser>
-  implements IUserRepository
-{
+  implements IUserRepository {
   constructor() {
     super(User);
   }
@@ -72,5 +71,8 @@ export class UserRepository
         },
       )
       .exec();
+  }
+  async findByEmail(email: string): Promise<IUser | null> {
+    return await this.model.findOne({ email }).exec();
   }
 }

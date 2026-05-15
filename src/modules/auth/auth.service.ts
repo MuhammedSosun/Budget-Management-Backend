@@ -12,12 +12,14 @@ import { ErrorMessages } from "../../exceptions/errorMessages";
 import { IAuthRepository } from "./auth.repository.interface";
 import { mailService } from "../mail/mail.service";
 import { EmailVerificationRepository } from "./email-verification.repository";
-
+import { WorkspaceService } from "../workspace/workspace.service";
+import { Types } from "mongoose";
 export class AuthService {
   private readonly googleClient: OAuth2Client;
   constructor(
     private readonly authRepository: IAuthRepository,
     private readonly emailVerificationRepository: EmailVerificationRepository,
+    private readonly workspaceService: WorkspaceService,
   ) {
     this.googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
   }
@@ -32,6 +34,10 @@ export class AuthService {
       ...data,
       isEmailVerified: false,
       authProvider: "local",
+    });
+    await this.workspaceService.createDefaultWorkspaceForUser({
+      userId: newUser._id as Types.ObjectId,
+      firstName: newUser.firstName,
     });
     const verificationCode = Math.floor(
       100000 + Math.random() * 900000,
@@ -111,6 +117,7 @@ export class AuthService {
     if (!user) {
       user = await this.authRepository.findByEmail(payload.email);
     }
+
     if (user) {
       if (!user.googleId) {
         user.googleId = payload.sub;
@@ -122,6 +129,7 @@ export class AuthService {
       if (!user.avatarUrl && payload.picture) {
         user.avatarUrl = payload.picture;
       }
+
       await user.save();
     }
     if (!user) {
@@ -133,6 +141,11 @@ export class AuthService {
         authProvider: "google",
         googleId: payload.sub,
         isEmailVerified: true,
+      });
+
+      await this.workspaceService.createDefaultWorkspaceForUser({
+        userId: user._id as Types.ObjectId,
+        firstName: user.firstName,
       });
     }
     const tokenPayload = {

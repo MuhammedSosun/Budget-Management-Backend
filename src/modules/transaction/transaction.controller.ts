@@ -12,8 +12,15 @@ export const createTransaction = async (
   next: NextFunction,
 ) => {
   try {
-    const transactionData = { ...req.body, userId: req.user.userId };
-    const result = await transactionService.createTransaction(transactionData);
+    const workspaceId = req.params.workspaceId as string;
+    const createdBy = req.user.userId as string;
+
+    const result = await transactionService.createTransaction(
+      workspaceId,
+      createdBy,
+      req.body,
+    );
+
     res.status(201).json({
       message: "İşlem başarıyla oluşturuldu",
       data: result,
@@ -35,8 +42,8 @@ export const findAllTransactions = async (
     };
     const { limit, offset, page, size } = getPagination(paginationParams);
     const { transactions, totalCount } =
-      await transactionService.findAllByUserId(
-        req.user.userId,
+      await transactionService.findAllByWorkspaceId(
+        req.params.workspaceId as string,
         limit,
         offset,
         req.query as {
@@ -70,7 +77,8 @@ export const deleteTransaction = async (
 ) => {
   try {
     const transactionId = req.params.id as string;
-    const result = await transactionService.deleteTransaction(transactionId);
+    const workspaceId = req.params.workspaceId as string;
+    const result = await transactionService.deleteTransaction(transactionId, workspaceId);
     res.status(200).json({
       message: "İşlem silindi",
       data: result,
@@ -87,11 +95,14 @@ export const updateTransaction = async (
 ) => {
   try {
     const transactionId = req.params.id as string;
-    const transactionData = { ...req.body, userId: req.user.userId };
+    const workspaceId = req.params.workspaceId as string;
+
     const result = await transactionService.updateTransaction(
       transactionId,
-      transactionData,
+      workspaceId,
+      req.body,
     );
+
     res.status(200).json({
       message: "İşlem güncellendi",
       data: result,
@@ -108,7 +119,8 @@ export const findTransactionById = async (
 ) => {
   try {
     const transactionId = req.params.id as string;
-    const result = await transactionService.findTransactionById(transactionId);
+    const workspaceId = req.params.workspaceId as string;
+    const result = await transactionService.findTransactionById(transactionId, workspaceId);
     res.status(200).json({
       message: "İşlem bulundu",
       data: result,
@@ -124,9 +136,9 @@ export const totalIncome = async (
   next: NextFunction,
 ) => {
   try {
-    const userId = req.user.userId;
+    const workspaceId = req.params.workspaceId as string;
     const currency = (req.query.currency as "TRY" | "USD" | "EUR") || "TRY";
-    const result = await transactionService.totalIncome(userId, currency);
+    const result = await transactionService.totalIncome(workspaceId, currency);
     res.status(200).json({
       message: "Toplam gelir bulundu",
       data: result,
@@ -142,9 +154,9 @@ export const totalExpense = async (
   next: NextFunction,
 ) => {
   try {
-    const userId = req.user.userId;
+    const workspaceId = req.params.workspaceId as string;
     const currency = (req.query.currency as "TRY" | "USD" | "EUR") || "TRY";
-    const result = await transactionService.totalExpense(userId, currency);
+    const result = await transactionService.totalExpense(workspaceId, currency);
     res.status(200).json({
       message: "Toplam gider bulundu",
       data: result,
@@ -160,9 +172,9 @@ export const getCategoryStats = async (
   next: NextFunction,
 ) => {
   try {
-    const userId = req.user.userId;
+    const workspaceId = req.params.workspaceId as string;
     const currency = (req.query.currency as "TRY" | "USD" | "EUR") || "TRY";
-    const result = await transactionService.getCategoryStats(userId, currency);
+    const result = await transactionService.getCategoryStats(workspaceId, currency);
     res.status(200).json({
       message: "Kategori istatistikleri bulundu",
       data: result,
@@ -177,12 +189,12 @@ export const getTrendStats = async (
   next: NextFunction,
 ) => {
   try {
-    const userId = req.user.userId;
+    const workspaceId = req.params.workspaceId as string;
     const period = (req.query.period as "weekly" | "monthly") || "weekly";
     const currency = (req.query.currency as "TRY" | "USD" | "EUR") || "TRY";
 
     const result = await transactionService.getTrendStats(
-      userId,
+      workspaceId,
       period,
       currency,
     );

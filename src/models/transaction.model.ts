@@ -16,7 +16,8 @@ export interface ITransaction extends Document {
   category: string;
   date: Date;
   description?: string;
-  userId: Types.ObjectId;
+  workspaceId: Types.ObjectId;
+  createdBy: Types.ObjectId;
 }
 
 const transactionSchema = new Schema<ITransaction>(
@@ -31,6 +32,20 @@ const transactionSchema = new Schema<ITransaction>(
         default: "TRY",
       },
     },
+
+    workspaceId: {
+      type: Schema.Types.ObjectId,
+      ref: "Workspace",
+      required: true,
+      index: true,
+    },
+
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
     conversions: {
       TRY: { type: Number, required: true },
       USD: { type: Number, required: true },
@@ -40,16 +55,14 @@ const transactionSchema = new Schema<ITransaction>(
     category: { type: String, required: true, trim: true },
     date: { type: Date, required: true },
     description: { type: String, trim: true, default: "" },
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
   },
   {
     timestamps: true,
     versionKey: false,
   },
 );
-
+transactionSchema.index({ workspaceId: 1, date: -1 });
+transactionSchema.index({ workspaceId: 1, type: 1 });
+transactionSchema.index({ workspaceId: 1, category: 1 });
+transactionSchema.index({ workspaceId: 1, createdBy: 1 });
 export default model<ITransaction>("Transaction", transactionSchema);
