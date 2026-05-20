@@ -84,7 +84,9 @@ export class TransactionRepository
         : { date: -1 as const };
 
     const [transactions, totalCount] = await Promise.all([
-      this.model.find(query).limit(limit).skip(offset).sort(sortOption).exec(),
+      this.model.find(query).
+        populate("createdBy", "firstName lastName email avatarUrl").
+        limit(limit).skip(offset).sort(sortOption).exec(),
       this.model.countDocuments(query).exec(),
     ]);
 
@@ -102,7 +104,7 @@ export class TransactionRepository
       .findOne({
         _id: this.toObjectId(transactionId),
         workspaceId: this.toObjectId(workspaceId),
-      })
+      }).populate("createdBy", "firstName lastName email avatarUrl")
       .exec();
   }
 
@@ -266,18 +268,7 @@ export class TransactionRepository
       if (period === "weekly") {
         const jsDay = transaction.date.getDay();
 
-        /**
-         * JavaScript getDay():
-         * 0 = Pazar
-         * 1 = Pazartesi
-         * 2 = Salı
-         *
-         * Bizim labels dizimiz:
-         * 0 = Pzt
-         * 1 = Sal
-         * ...
-         * 6 = Paz
-         */
+
         const mondayBasedIndex = jsDay === 0 ? 6 : jsDay - 1;
 
         totals[mondayBasedIndex].value += amount;

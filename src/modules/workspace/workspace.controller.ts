@@ -150,6 +150,7 @@ export const createWorkspaceInvitation = async (
     next: NextFunction,
 ) => {
     try {
+
         const parsedBody = createWorkspaceInvitationSchema.parse(req.body);
 
         const result = await workspaceInvitationService.createWorkspaceInvitation({

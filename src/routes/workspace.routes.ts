@@ -14,6 +14,8 @@ import {
 } from "../modules/workspace/workspace.controller";
 import { requireWorkspaceRole } from "../middlewares/workspace/requireWorkspaceRole.middleware";
 import transactionRoutes from "./transaction.routes";
+import { validate } from "../middlewares/validations/validate.middleware";
+import { createWorkspaceSchema, updateWorkspaceMemberRoleSchema } from "../modules/workspace/workspace.validation";
 
 const router = Router();
 
@@ -63,6 +65,7 @@ router.patch(
     "/:workspaceId/members/:memberId",
     authMiddleware,
     requireWorkspaceRole(["OWNER"]),
+    validate(updateWorkspaceMemberRoleSchema),
     updateWorkspaceMemberRole,
 );
 
