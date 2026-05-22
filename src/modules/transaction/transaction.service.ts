@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import { TransactionRequest } from "./transaction.types";
 import { AppError } from "../../exceptions/AppError";
-import { ErrorMessages } from "../../exceptions/errorMessages";
+import { ErrorCode } from "../../exceptions/ErrorCodes";
 import { ITransactionRepository } from "./transaction.repository.interface";
 import { CurrencyCode } from "../../models/transaction.model";
 
@@ -13,19 +13,44 @@ export class TransactionService {
 
   constructor(private readonly transactionRepository: ITransactionRepository) { }
 
+  private validateCurrency(currency: CurrencyCode) {
+    const allowedCurrencies: CurrencyCode[] = ["TRY", "USD", "EUR"];
+
+    if (!allowedCurrencies.includes(currency)) {
+      throw new AppError(ErrorCode.INVALID_TRANSACTION_CURRENCY, 400);
+    }
+  }
+
+  private validateDateRange(startDate?: string, endDate?: string) {
+    if (!startDate || !endDate) return;
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (start.getTime() > end.getTime()) {
+      throw new AppError(ErrorCode.INVALID_TRANSACTION_DATE_RANGE, 400);
+    }
+  }
+
   private calculateConversions(input_details: {
     amount: number;
     currency: CurrencyCode;
   }) {
     const { amount, currency } = input_details;
 
+    this.validateCurrency(currency);
+
     let amountInTRY = 0;
 
     if (currency === "TRY") {
       amountInTRY = amount;
-    } else if (currency === "USD") {
+    }
+
+    if (currency === "USD") {
       amountInTRY = amount * this.rates.USD_TRY;
-    } else if (currency === "EUR") {
+    }
+
+    if (currency === "EUR") {
       amountInTRY = amount * this.rates.EUR_TRY;
     }
 
@@ -45,12 +70,18 @@ export class TransactionService {
       transactionData.input_details,
     );
 
-    return this.transactionRepository.create({
+    const transaction = await this.transactionRepository.create({
       ...transactionData,
       conversions,
       workspaceId: new Types.ObjectId(workspaceId),
       createdBy: new Types.ObjectId(createdBy),
     });
+
+    if (!transaction) {
+      throw new AppError(ErrorCode.TRANSACTION_CREATE_FAILED, 500);
+    }
+
+    return transaction;
   }
 
   async findAllByWorkspaceId(
@@ -66,6 +97,8 @@ export class TransactionService {
       filter?: "newest" | "oldest" | "7days" | "30days";
     },
   ) {
+    this.validateDateRange(query.startDate, query.endDate);
+
     return this.transactionRepository.findAllByWorkspaceId(
       workspaceId,
       limit,
@@ -99,7 +132,7 @@ export class TransactionService {
       );
 
     if (!updatedTransaction) {
-      throw new AppError(ErrorMessages.TRANSACTION_NOT_FOUND, 404);
+      throw new AppError(ErrorCode.TRANSACTION_NOT_FOUND, 404);
     }
 
     return updatedTransaction;
@@ -112,7 +145,7 @@ export class TransactionService {
     );
 
     if (!transaction) {
-      throw new AppError(ErrorMessages.TRANSACTION_NOT_FOUND, 404);
+      throw new AppError(ErrorCode.TRANSACTION_NOT_FOUND, 404);
     }
 
     return transaction;
@@ -126,21 +159,27 @@ export class TransactionService {
       );
 
     if (!deletedTransaction) {
-      throw new AppError(ErrorMessages.TRANSACTION_NOT_FOUND, 404);
+      throw new AppError(ErrorCode.TRANSACTION_NOT_FOUND, 404);
     }
 
     return deletedTransaction;
   }
 
   async totalExpense(workspaceId: string, currency: CurrencyCode) {
+    this.validateCurrency(currency);
+
     return this.transactionRepository.totalExpense(workspaceId, currency);
   }
 
   async totalIncome(workspaceId: string, currency: CurrencyCode) {
+    this.validateCurrency(currency);
+
     return this.transactionRepository.totalIncome(workspaceId, currency);
   }
 
   async getCategoryStats(workspaceId: string, currency: CurrencyCode) {
+    this.validateCurrency(currency);
+
     return this.transactionRepository.getCategoryStats(workspaceId, currency);
   }
 
@@ -149,10 +188,13 @@ export class TransactionService {
     period: "weekly" | "monthly" = "weekly",
     currency: CurrencyCode = "TRY",
   ) {
+    this.validateCurrency(currency);
+
     return this.transactionRepository.getTrendStats(
       workspaceId,
       period,
       currency,
     );
   }
+
 }

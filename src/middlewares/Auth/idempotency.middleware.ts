@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import crypto from "crypto";
+import { ErrorCode } from "../../exceptions/ErrorCodes";
 
 type IdempotencyRecord = {
   fingerprint: string;
@@ -45,31 +46,34 @@ export const idempotencyMiddleware = (
     if (cached.fingerprint !== fingerprint) {
       return res.status(409).json({
         success: false,
-        message:
-          "This idempotency key was used with a different request. Please use a new key.",
+        code: ErrorCode.IDEMPOTENCY_KEY_CONFLICT,
+        message: ErrorCode.IDEMPOTENCY_KEY_CONFLICT,
+        statusCode: 409,
       });
     }
 
-    return res.status(409).json({
-      success: false,
-      message:
-        "This request has already been processed. Please use a new idempotency key.",
-    });
+    return res.status(cached.statusCode).json(cached.body);
   }
 
   const originalJson = res.json.bind(res);
 
   res.json = function (body: unknown): Response {
-    idempotencyStore.set(key, {
-      fingerprint,
-      statusCode: res.statusCode,
-      body,
-      expiresAt: Date.now() + TTL_MS,
-    });
+    const shouldCache =
+      res.statusCode >= 200 &&
+      res.statusCode < 300;
 
-    setTimeout(() => {
-      idempotencyStore.delete(key);
-    }, TTL_MS);
+    if (shouldCache) {
+      idempotencyStore.set(key, {
+        fingerprint,
+        statusCode: res.statusCode,
+        body,
+        expiresAt: Date.now() + TTL_MS,
+      });
+
+      setTimeout(() => {
+        idempotencyStore.delete(key);
+      }, TTL_MS);
+    }
 
     return originalJson(body);
   };

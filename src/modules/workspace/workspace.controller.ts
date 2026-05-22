@@ -3,29 +3,35 @@ import { Types } from "mongoose";
 
 import { WorkspaceRepository } from "./workspace.repository";
 import { WorkspaceService } from "./workspace.service";
-
 import { WorkspaceMemberRepository } from "./workspace-member/workspace-member.repository";
 import { WorkspaceMemberService } from "./workspace-member/workspace-member.service";
 
 import { WorkspaceInvitationRepository } from "./workspace-invitation/workspace-invitation.repository";
 import { WorkspaceInvitationService } from "./workspace-invitation/workspace-invitation.service";
-
+import { TransactionRepository } from "../transaction/transaction.repository";
 import { UserRepository } from "../user/user.repository";
 
 import {
     createWorkspaceSchema,
     createWorkspaceInvitationSchema,
     updateWorkspaceMemberRoleSchema,
+    updateWorkspaceSchema,
 } from "./workspace.validation";
+import { AppError } from "../../exceptions/AppError";
+import { ErrorCode } from "../../exceptions/ErrorCodes";
+
 
 const workspaceRepository = new WorkspaceRepository();
 const workspaceMemberRepository = new WorkspaceMemberRepository();
-const workspaceInvitationRepository = new WorkspaceInvitationRepository();
 const userRepository = new UserRepository();
-
+const workspaceInvitationRepository = new WorkspaceInvitationRepository();
+const transactionRepository = new TransactionRepository();
 const workspaceService = new WorkspaceService(
     workspaceRepository,
     workspaceMemberRepository,
+    workspaceInvitationRepository,
+    transactionRepository
+
 );
 
 const workspaceMemberService = new WorkspaceMemberService(
@@ -241,6 +247,77 @@ export const getMyPendingWorkspaceInvitations = async (
 
         return res.status(200).json({
             message: "Bekleyen workspace davetleri listelendi",
+            data: result,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const deleteWorkspace = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const workspaceId = req.params.workspaceId as string;
+
+        if (!req.user?.userId) {
+            throw new AppError(ErrorCode.USER_NOT_FOUND, 404);
+        }
+
+        const result = await workspaceService.deleteWorkspace({
+            workspaceId,
+            userId: req.user.userId,
+        });
+
+        return res.status(200).json({
+            message: "Workspace başarıyla silindi.",
+            data: result,
+        });
+    } catch (error) {
+        next(error);
+    }
+
+};
+
+export const updateWorkspace = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const parsedBody = updateWorkspaceSchema.parse(req.body);
+
+        const result = await workspaceService.updateWorkspace({
+            workspaceId: req.params.workspaceId as string,
+            userId: req.user.userId,
+            name: parsedBody.name,
+            description: parsedBody.description,
+        });
+
+        return res.status(200).json({
+            message: "Workspace başarıyla güncellendi.",
+            data: result,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const leaveWorkspace = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const result = await workspaceService.leaveWorkspace({
+            workspaceId: req.params.workspaceId as string,
+            userId: req.user.userId,
+        });
+
+        return res.status(200).json({
+            message: "Workspace'ten başarıyla ayrıldınız.",
             data: result,
         });
     } catch (error) {

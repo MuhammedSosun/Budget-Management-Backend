@@ -5,7 +5,8 @@ import { EmailVerificationRepository } from "./email-verification.repository";
 import { WorkspaceRepository } from "../workspace/workspace.repository";
 import { WorkspaceMemberRepository } from "../workspace/workspace-member/workspace-member.repository";
 import { WorkspaceService } from "../workspace/workspace.service";
-
+import { WorkspaceInvitationRepository } from "../workspace/workspace-invitation/workspace-invitation.repository";
+import { TransactionRepository } from "../transaction/transaction.repository";
 
 
 
@@ -20,10 +21,14 @@ const emailVerificationRepository = new EmailVerificationRepository();
 
 const workspaceRepository = new WorkspaceRepository();
 const workspaceMemberRepository = new WorkspaceMemberRepository();
+const workspaceInvitationRepository = new WorkspaceInvitationRepository();
+const transactionRepository = new TransactionRepository();
 
 const workspaceService = new WorkspaceService(
   workspaceRepository,
   workspaceMemberRepository,
+  workspaceInvitationRepository,
+  transactionRepository
 );
 
 const authService = new AuthService(

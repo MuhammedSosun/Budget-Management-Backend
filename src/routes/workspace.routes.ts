@@ -11,11 +11,14 @@ import {
     rejectWorkspaceInvitation,
     getWorkspaceInvitations,
     getMyPendingWorkspaceInvitations,
+    deleteWorkspace,
+    updateWorkspace,
+    leaveWorkspace
 } from "../modules/workspace/workspace.controller";
 import { requireWorkspaceRole } from "../middlewares/workspace/requireWorkspaceRole.middleware";
 import transactionRoutes from "./transaction.routes";
 import { validate } from "../middlewares/validations/validate.middleware";
-import { createWorkspaceSchema, updateWorkspaceMemberRoleSchema } from "../modules/workspace/workspace.validation";
+import { createWorkspaceSchema, updateWorkspaceMemberRoleSchema, updateWorkspaceSchema } from "../modules/workspace/workspace.validation";
 
 const router = Router();
 
@@ -88,6 +91,26 @@ router.get(
     authMiddleware,
     requireWorkspaceRole(["OWNER"]),
     getWorkspaceInvitations,
+);
+router.delete(
+    "/:workspaceId",
+    authMiddleware,
+    requireWorkspaceRole(["OWNER"]),
+    deleteWorkspace,
+);
+
+router.patch(
+    "/:workspaceId",
+    authMiddleware,
+    requireWorkspaceRole(["OWNER"]),
+    validate(updateWorkspaceSchema),
+    updateWorkspace,
+);
+
+router.delete(
+    "/:workspaceId/leave",
+    authMiddleware,
+    leaveWorkspace,
 );
 
 export default router;

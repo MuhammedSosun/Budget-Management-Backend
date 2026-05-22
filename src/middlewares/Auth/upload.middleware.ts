@@ -1,5 +1,6 @@
 import multer from "multer";
 import { AppError } from "../../exceptions/AppError";
+import { ErrorCode } from "../../exceptions/ErrorCodes";
 
 const storage = multer.memoryStorage();
 
@@ -12,12 +13,7 @@ export const uploadAvatar = multer({
     const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
 
     if (!allowedMimeTypes.includes(file.mimetype)) {
-      return cb(
-        new AppError(
-          "Sadece JPEG, PNG veya WEBP formatı yükleyebilirsiniz.",
-          400,
-        ),
-      );
+      return cb(new AppError(ErrorCode.INVALID_IMAGE_FORMAT, 400));
     }
 
     cb(null, true);

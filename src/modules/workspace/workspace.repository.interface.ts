@@ -6,4 +6,5 @@ export interface IWorkspaceRepository extends IBaseRepository<IWorkspace> {
     findDefaultWorkspaceByOwnerId(
         ownerId: Types.ObjectId,
     ): Promise<IWorkspace | null>;
+
 }

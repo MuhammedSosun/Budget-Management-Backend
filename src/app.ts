@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import express, { Application } from "express";
+import express, { Application, Request, Response } from "express";
 import rateLimit from "express-rate-limit";
 import cors from "cors";
 import { setRoutes } from "./routes";
@@ -9,6 +9,7 @@ import { notFoundHandler } from "./middlewares/errors/not-found.middleware";
 import { errorHandler } from "./middlewares/errors/error.middleware";
 import { idempotencyMiddleware } from "./middlewares/Auth/idempotency.middleware";
 import path from "path";
+import { ErrorCode } from "./exceptions/ErrorCodes";
 
 dotenv.config();
 
@@ -16,40 +17,49 @@ const app: Application = express();
 
 connectDB();
 
+const createRateLimitHandler = (code: string) => {
+  return (_req: Request, res: Response) => {
+    return res.status(429).json({
+      success: false,
+      code,
+      message: code,
+      statusCode: 429,
+    });
+  };
+};
+
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 500,
   standardHeaders: true,
   legacyHeaders: false,
-  message: {
-    status: 429,
-    message: "Çok fazla istek gönderdiniz, lütfen biraz dinlenin.",
-  },
+  handler: createRateLimitHandler(ErrorCode.RATE_LIMIT_EXCEEDED),
 });
+
 const mailLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
   max: process.env.NODE_ENV === "development" ? 1000 : 1,
   standardHeaders: true,
   legacyHeaders: false,
-  message: {
-    status: 429,
-    message: "Yeni bir doğrulama kodu için lütfen 1 dakika bekleyin.",
-  },
+  handler: createRateLimitHandler(ErrorCode.RATE_LIMIT_EMAIL_RESEND),
 });
+
 const strictLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
   max: process.env.NODE_ENV === "development" ? 1000 : 15,
   standardHeaders: true,
   legacyHeaders: false,
-  message: {
-    status: 429,
-    message: "Çok hızlı işlem yapıyorsunuz, lütfen biraz bekleyin.",
-  },
+  handler: createRateLimitHandler(ErrorCode.RATE_LIMIT_TOO_FAST),
 });
+
 const refreshLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
   max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: createRateLimitHandler(ErrorCode.RATE_LIMIT_REFRESH),
 });
+
 const allowedOrigins = ["http://localhost:5173", "http://dev.butcemx.com:5173"];
 
 app.use(express.json());
@@ -83,13 +93,16 @@ app.get("/", (req, res) => {
   }
 });
 
-app.use("/api", idempotencyMiddleware);
 app.use("/api", generalLimiter);
+
 app.use("/api/auth/login", strictLimiter);
 app.use("/api/auth/register", strictLimiter);
 app.use("/api/auth/refresh-token", refreshLimiter);
 app.use("/api/auth/verify-email", strictLimiter);
 app.use("/api/auth/resend-verification", mailLimiter);
+
+app.use("/api", idempotencyMiddleware);
+
 setRoutes(app);
 
 app.use(notFoundHandler);

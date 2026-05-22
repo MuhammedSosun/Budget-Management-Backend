@@ -27,4 +27,5 @@ export interface IWorkspaceInvitationRepository
   ): Promise<IWorkspaceInvitation[]>;
 
   findPendingByEmail(email: string): Promise<IWorkspaceInvitation[]>;
+  deleteManyByWorkspaceId(workspaceId: string): Promise<void>;
 }

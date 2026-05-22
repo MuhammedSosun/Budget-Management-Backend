@@ -1,6 +1,7 @@
 import { randomBytes } from "crypto";
 import { Types } from "mongoose";
 import { AppError } from "../../../exceptions/AppError";
+import { ErrorCode } from "../../../exceptions/ErrorCodes";
 import { WorkspaceRole } from "../../../models/workspace-member.model";
 import { IUserRepository } from "../../user/user.repository.interface";
 import { IWorkspaceMemberRepository } from "../workspace-member/workspace-member.repository.interface";
@@ -42,13 +43,13 @@ export class WorkspaceInvitationService {
         const invitedUser = await this.userRepository.findByEmail(normalizedEmail);
 
         if (!invitedUser) {
-            throw new AppError("Bu e-posta adresine sahip kullanıcı bulunamadı.", 404);
+            throw new AppError(ErrorCode.WORKSPACE_INVITATION_USER_NOT_FOUND, 404);
         }
 
         const invitedUserId = invitedUser._id as Types.ObjectId;
 
         if (invitedUserId.toString() === invitedByUserId.toString()) {
-            throw new AppError("Kendinize davet gönderemezsiniz.", 400);
+            throw new AppError(ErrorCode.CANNOT_INVITE_YOURSELF, 400);
         }
 
         const existingMember =
@@ -58,7 +59,7 @@ export class WorkspaceInvitationService {
             );
 
         if (existingMember) {
-            throw new AppError("Bu kullanıcı zaten workspace üyesi.", 409);
+            throw new AppError(ErrorCode.USER_ALREADY_WORKSPACE_MEMBER, 409);
         }
 
         const existingPendingInvitation =
@@ -68,7 +69,7 @@ export class WorkspaceInvitationService {
             );
 
         if (existingPendingInvitation) {
-            throw new AppError("Bu kullanıcı için zaten bekleyen bir davet var.", 409);
+            throw new AppError(ErrorCode.WORKSPACE_INVITATION_ALREADY_PENDING, 409);
         }
 
         const token = randomBytes(32).toString("hex");
@@ -105,14 +106,16 @@ export class WorkspaceInvitationService {
         userId,
         userEmail,
     }: AcceptWorkspaceInvitationParams) {
-        const invitation = await this.workspaceInvitationRepository.findByToken(token);
+        const invitation = await this.workspaceInvitationRepository.findByToken(
+            token,
+        );
 
         if (!invitation) {
-            throw new AppError("Davet bulunamadı.", 404);
+            throw new AppError(ErrorCode.WORKSPACE_INVITATION_NOT_FOUND, 404);
         }
 
         if (invitation.status !== "PENDING") {
-            throw new AppError("Bu davet artık geçerli değil.", 400);
+            throw new AppError(ErrorCode.WORKSPACE_INVITATION_NOT_VALID, 400);
         }
 
         if (invitation.expiresAt.getTime() < Date.now()) {
@@ -121,13 +124,13 @@ export class WorkspaceInvitationService {
                 "EXPIRED",
             );
 
-            throw new AppError("Davetin süresi dolmuş.", 410);
+            throw new AppError(ErrorCode.WORKSPACE_INVITATION_EXPIRED, 410);
         }
 
         const normalizedUserEmail = userEmail.toLowerCase().trim();
 
         if (invitation.email !== normalizedUserEmail) {
-            throw new AppError("Bu davet bu kullanıcıya ait değil.", 403);
+            throw new AppError(ErrorCode.WORKSPACE_INVITATION_NOT_OWNED_BY_USER, 403);
         }
 
         const existingMember =
@@ -144,7 +147,7 @@ export class WorkspaceInvitationService {
             );
 
             return {
-                message: "Kullanıcı zaten workspace üyesi.",
+                messageCode: ErrorCode.USER_ALREADY_WORKSPACE_MEMBER,
                 workspaceId: invitation.workspaceId.toString(),
                 role: existingMember.role,
             };
@@ -178,14 +181,16 @@ export class WorkspaceInvitationService {
         token,
         userEmail,
     }: RejectWorkspaceInvitationParams) {
-        const invitation = await this.workspaceInvitationRepository.findByToken(token);
+        const invitation = await this.workspaceInvitationRepository.findByToken(
+            token,
+        );
 
         if (!invitation) {
-            throw new AppError("Davet bulunamadı.", 404);
+            throw new AppError(ErrorCode.WORKSPACE_INVITATION_NOT_FOUND, 404);
         }
 
         if (invitation.status !== "PENDING") {
-            throw new AppError("Bu davet artık geçerli değil.", 400);
+            throw new AppError(ErrorCode.WORKSPACE_INVITATION_NOT_VALID, 400);
         }
 
         if (invitation.expiresAt.getTime() < Date.now()) {
@@ -194,13 +199,13 @@ export class WorkspaceInvitationService {
                 "EXPIRED",
             );
 
-            throw new AppError("Davetin süresi dolmuş.", 410);
+            throw new AppError(ErrorCode.WORKSPACE_INVITATION_EXPIRED, 410);
         }
 
         const normalizedUserEmail = userEmail.toLowerCase().trim();
 
         if (invitation.email !== normalizedUserEmail) {
-            throw new AppError("Bu davet bu kullanıcıya ait değil.", 403);
+            throw new AppError(ErrorCode.WORKSPACE_INVITATION_NOT_OWNED_BY_USER, 403);
         }
 
         const updatedInvitation =
@@ -211,7 +216,7 @@ export class WorkspaceInvitationService {
             );
 
         if (!updatedInvitation) {
-            throw new AppError("Davet reddedilemedi.", 500);
+            throw new AppError(ErrorCode.WORKSPACE_INVITATION_REJECT_FAILED, 500);
         }
 
         return {
@@ -244,11 +249,22 @@ export class WorkspaceInvitationService {
     }
 
     async getMyPendingInvitations(userEmail: string) {
+        const normalizedEmail = userEmail.toLowerCase().trim();
+
         const invitations =
-            await this.workspaceInvitationRepository.findPendingByEmail(userEmail);
+            await this.workspaceInvitationRepository.findPendingByEmail(
+                normalizedEmail,
+            );
 
         return invitations.map((invitation) => {
             const workspace = invitation.workspaceId as any;
+
+            if (!workspace?._id) {
+                throw new AppError(
+                    ErrorCode.WORKSPACE_INVITATION_WORKSPACE_NOT_FOUND,
+                    404,
+                );
+            }
 
             return {
                 id: invitation._id.toString(),

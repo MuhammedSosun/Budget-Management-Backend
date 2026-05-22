@@ -86,4 +86,8 @@ export class WorkspaceInvitationRepository
             .sort({ createdAt: -1 })
             .exec();
     }
+
+    async deleteManyByWorkspaceId(workspaceId: string): Promise<void> {
+        await this.model.deleteMany({ workspaceId }).exec();
+    }
 }

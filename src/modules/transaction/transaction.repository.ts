@@ -281,4 +281,11 @@ export class TransactionRepository
 
     return totals;
   }
+  async deleteManyByWorkspaceId(workspaceId: string): Promise<void> {
+    await this.model
+      .deleteMany({
+        workspaceId: this.toObjectId(workspaceId),
+      })
+      .exec();
+  }
 }

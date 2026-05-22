@@ -1,6 +1,6 @@
 import jwt, { TokenExpiredError, JsonWebTokenError } from "jsonwebtoken";
 import { AppError } from "../exceptions/AppError";
-import { ErrorMessages } from "../exceptions/errorMessages";
+import { ErrorCode } from "../exceptions/ErrorCodes";
 
 export interface TokenPayload {
   userId: string;
@@ -24,14 +24,14 @@ export const verifyAccessToken = (token: string) => {
     return jwt.verify(token, process.env.JWT_ACCESS_SECRET!) as TokenPayload;
   } catch (err: unknown) {
     if (err instanceof TokenExpiredError) {
-      throw new AppError(ErrorMessages.ACCESS_TOKEN_EXPIRED, 401);
+      throw new AppError(ErrorCode.ACCESS_TOKEN_EXPIRED, 401);
     }
 
     if (err instanceof JsonWebTokenError) {
-      throw new AppError(ErrorMessages.ACCESS_TOKEN_INVALID, 401);
+      throw new AppError(ErrorCode.ACCESS_TOKEN_INVALID, 401);
     }
 
-    throw new AppError(ErrorMessages.INTERNAL_SERVER_ERROR, 500);
+    throw new AppError(ErrorCode.INTERNAL_SERVER_ERROR, 500);
   }
 };
 
@@ -42,13 +42,13 @@ export const verfiyRefreshToken = (token: string) => {
     };
   } catch (err: unknown) {
     if (err instanceof TokenExpiredError) {
-      throw new AppError(ErrorMessages.REFRESH_TOKEN_EXPIRED, 401);
+      throw new AppError(ErrorCode.REFRESH_TOKEN_EXPIRED, 401);
     }
 
     if (err instanceof JsonWebTokenError) {
-      throw new AppError(ErrorMessages.REFRESH_TOKEN_INVALID, 401);
+      throw new AppError(ErrorCode.REFRESH_TOKEN_INVALID, 401);
     }
 
-    throw new AppError(ErrorMessages.INTERNAL_SERVER_ERROR, 500);
+    throw new AppError(ErrorCode.INTERNAL_SERVER_ERROR, 500);
   }
 };

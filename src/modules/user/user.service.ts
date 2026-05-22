@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import { AppError } from "../../exceptions/AppError";
+import { ErrorCode } from "../../exceptions/ErrorCodes";
 import { StorageService } from "./storage.service";
 import { IUserRepository } from "./user.repository.interface";
 import { UpdatePasswordInput, UpdateProfileInput } from "./user.validation";
@@ -22,7 +23,7 @@ export class UserService {
   constructor(
     private readonly userRepository: IUserRepository,
     private readonly storageService: StorageService,
-  ) {}
+  ) { }
 
   async updateMe(userId: string, payload: UpdateProfileInput) {
     const firstName = formatName(payload.firstName);
@@ -34,7 +35,7 @@ export class UserService {
     });
 
     if (!updatedUser) {
-      throw new AppError("Kullanıcı bulunamadı.", 404);
+      throw new AppError(ErrorCode.USER_NOT_FOUND, 404);
     }
 
     return {
@@ -50,7 +51,7 @@ export class UserService {
     const user = await this.userRepository.findById(userId);
 
     if (!user) {
-      throw new AppError("Kullanıcı bulunamadı.", 404);
+      throw new AppError(ErrorCode.USER_NOT_FOUND, 404);
     }
 
     const oldAvatarUrl = user.avatarUrl;
@@ -64,7 +65,7 @@ export class UserService {
 
     if (!updatedUser) {
       await this.storageService.deleteFileByUrl(newAvatarUrl);
-      throw new AppError("Profil fotoğrafı güncellenemedi.", 500);
+      throw new AppError(ErrorCode.AVATAR_UPDATE_FAILED, 500);
     }
 
     if (oldAvatarUrl && oldAvatarUrl !== newAvatarUrl) {
@@ -79,18 +80,16 @@ export class UserService {
       avatarUrl: updatedUser.avatarUrl,
     };
   }
+
   async updatePassword(userId: string, payload: UpdatePasswordInput) {
     const user = await this.userRepository.findByIdWithPassword(userId);
 
     if (!user) {
-      throw new AppError("Kullanıcı bulunamadı.", 404);
+      throw new AppError(ErrorCode.USER_NOT_FOUND, 404);
     }
 
     if (!user.password) {
-      throw new AppError(
-        "Bu hesap Google ile oluşturulmuş. Şifre değiştirmek için önce şifre belirleme işlemi yapılmalıdır.",
-        400,
-      );
+      throw new AppError(ErrorCode.GOOGLE_ACCOUNT_PASSWORD_NOT_AVAILABLE, 400);
     }
 
     const isCurrentPasswordCorrect = await bcrypt.compare(
@@ -99,7 +98,7 @@ export class UserService {
     );
 
     if (!isCurrentPasswordCorrect) {
-      throw new AppError("Mevcut şifre hatalı.", 400);
+      throw new AppError(ErrorCode.PASSWORD_MISMATCH, 400);
     }
 
     const hashedPassword = await bcrypt.hash(payload.newPassword, 10);
@@ -117,7 +116,7 @@ export class UserService {
     );
 
     if (!updatedUser) {
-      throw new AppError("Şifre güncellenemedi.", 500);
+      throw new AppError(ErrorCode.PASSWORD_UPDATE_FAILED, 500);
     }
 
     return {

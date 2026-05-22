@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import { AppError } from "../../../exceptions/AppError";
+import { ErrorCode } from "../../../exceptions/ErrorCodes";
 import { WorkspaceRole } from "../../../models/workspace-member.model";
 import { IWorkspaceMemberRepository } from "./workspace-member.repository.interface";
 
@@ -28,6 +29,10 @@ export class WorkspaceMemberService {
         return members.map((member) => {
             const user = member.userId as any;
 
+            if (!user?._id) {
+                throw new AppError(ErrorCode.WORKSPACE_MEMBER_USER_NOT_FOUND, 404);
+            }
+
             return {
                 id: member._id.toString(),
                 workspaceId: member.workspaceId.toString(),
@@ -54,15 +59,15 @@ export class WorkspaceMemberService {
         const member = await this.workspaceMemberRepository.findById(memberId);
 
         if (!member) {
-            throw new AppError("Workspace üyesi bulunamadı.", 404);
+            throw new AppError(ErrorCode.WORKSPACE_MEMBER_NOT_FOUND, 404);
         }
 
         if (member.workspaceId.toString() !== workspaceId.toString()) {
-            throw new AppError("Bu üye belirtilen workspace'e ait değil.", 400);
+            throw new AppError(ErrorCode.WORKSPACE_MEMBER_NOT_IN_WORKSPACE, 400);
         }
 
         if (member.role === "OWNER") {
-            throw new AppError("OWNER kullanıcısının rolü değiştirilemez.", 400);
+            throw new AppError(ErrorCode.OWNER_ROLE_CANNOT_BE_CHANGED, 400);
         }
 
         const updatedMember = await this.workspaceMemberRepository.updateRoleById(
@@ -71,10 +76,14 @@ export class WorkspaceMemberService {
         );
 
         if (!updatedMember) {
-            throw new AppError("Üye rolü güncellenemedi.", 500);
+            throw new AppError(ErrorCode.WORKSPACE_MEMBER_ROLE_UPDATE_FAILED, 500);
         }
 
         const user = updatedMember.userId as any;
+
+        if (!user?._id) {
+            throw new AppError(ErrorCode.WORKSPACE_MEMBER_USER_NOT_FOUND, 404);
+        }
 
         return {
             id: updatedMember._id.toString(),
@@ -101,19 +110,22 @@ export class WorkspaceMemberService {
         const member = await this.workspaceMemberRepository.findById(memberId);
 
         if (!member) {
-            throw new AppError("Workspace üyesi bulunamadı.", 404);
+            throw new AppError(ErrorCode.WORKSPACE_MEMBER_NOT_FOUND, 404);
         }
 
         if (member.workspaceId.toString() !== workspaceId.toString()) {
-            throw new AppError("Bu üye belirtilen workspace'e ait değil.", 400);
+            throw new AppError(ErrorCode.WORKSPACE_MEMBER_NOT_IN_WORKSPACE, 400);
         }
 
         if (member.role === "OWNER") {
-            throw new AppError("OWNER workspace'ten çıkarılamaz.", 400);
+            throw new AppError(ErrorCode.OWNER_CANNOT_BE_REMOVED, 400);
         }
 
         if (member.userId.toString() === requestUserId.toString()) {
-            throw new AppError("Kendinizi workspace'ten çıkaramazsınız.", 400);
+            throw new AppError(
+                ErrorCode.CANNOT_REMOVE_YOURSELF_FROM_WORKSPACE,
+                400,
+            );
         }
 
         await this.workspaceMemberRepository.delete(memberId);

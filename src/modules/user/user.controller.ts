@@ -3,6 +3,7 @@ import { AppError } from "../../exceptions/AppError";
 import { StorageService } from "./storage.service";
 import { UserRepository } from "./user.repository";
 import { UserService } from "./user.service";
+import { ErrorCode } from "../../exceptions/ErrorCodes";
 
 const userRepository = new UserRepository();
 const storageService = new StorageService();
@@ -15,7 +16,7 @@ export const updateMe = async (
 ) => {
   try {
     if (!req.user?.userId) {
-      throw new AppError("Kullanıcı bilgisi bulunamadı.", 401);
+      throw new AppError(ErrorCode.USER_NOT_FOUND, 401);
     }
 
     const result = await userService.updateMe(req.user.userId, req.body);
@@ -36,11 +37,11 @@ export const updateAvatar = async (
 ) => {
   try {
     if (!req.user?.userId) {
-      throw new AppError("Kullanıcı bilgisi bulunamadı.", 401);
+      throw new AppError(ErrorCode.USER_NOT_FOUND, 401);
     }
 
     if (!req.file) {
-      throw new AppError("Profil fotoğrafı zorunludur.", 400);
+      throw new AppError(ErrorCode.AVATAR_REQUIRED, 400);
     }
 
     const result = await userService.updateAvatar(req.user.userId, req.file);
@@ -60,7 +61,7 @@ export const updatePassword = async (
 ) => {
   try {
     if (!req.user?.userId) {
-      throw new AppError("Kullanıcı bilgisi bulunamadı.", 401);
+      throw new AppError(ErrorCode.USER_NOT_FOUND, 401);
     }
 
     await userService.updatePassword(req.user.userId, req.body);

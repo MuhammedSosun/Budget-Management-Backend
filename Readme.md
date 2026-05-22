@@ -122,3 +122,97 @@ Bu durumda kullanıcıya önce e-posta adresini doğrulaması gerektiği bildiri
 
 ############################################## Workspace Modülü ##############################################
 
+
+
+# Workspace Modülü Geliştirmeleri
+
+Bu geliştirme kapsamında proje, kullanıcı bazlı transaction yönetiminden workspace bazlı yapıya taşındı. Amaç, bir kullanıcının birden fazla workspace içinde farklı rollerle çalışabilmesini sağlamak ve transaction yönetimini ekip/workspace mantığına uygun hale getirmektir.
+
+---
+
+## Backend Mimarisi
+
+Backend tarafında mevcut user-based transaction yapısı workspace-based yapıya dönüştürüldü. Önceden transaction kayıtları doğrudan `userId` üzerinden filtrelenirken, artık transaction işlemleri `workspaceId` üzerinden yönetilmektedir.
+
+Kullanıcı rollerini doğrudan `User` modeli içinde tutmak yerine ayrı bir `WorkspaceMember` modeli oluşturuldu. Bunun nedeni, aynı kullanıcının farklı workspace’lerde farklı rollere sahip olabilmesidir. Örneğin bir kullanıcı bir workspace’te `OWNER`, başka bir workspace’te `VIEWER` olabilir.
+
+`WorkspaceMember` modeli temel olarak şu ilişkiyi tutar:
+
+- `userId`
+- `workspaceId`
+- `role`
+
+Bu yapı sayesinde kullanıcı, workspace ve rol ilişkisi merkezi bir şekilde yönetilebilir hale getirildi.
+
+---
+
+## Rol ve Yetki Kontrolü
+
+API tarafında generic bir `requireWorkspaceRole` middleware’i geliştirildi. Bu middleware, JWT içerisinden gelen `userId` bilgisini ve route parametresinden gelen `workspaceId` bilgisini kullanarak kullanıcının ilgili workspace içerisindeki rolünü kontrol eder.
+
+Eğer kullanıcının rolü route için izin verilen rollerden biriyse işlem devam eder. Aksi durumda kullanıcı yetkisiz kabul edilir.
+
+Bu yapı ile roller merkezi şekilde yönetilmektedir:
+
+- `OWNER`: Workspace yönetimi, üye yönetimi, rol güncelleme ve transaction işlemleri
+- `EDITOR`: Transaction ekleme, düzenleme ve silme işlemleri
+- `VIEWER`: Sadece görüntüleme işlemleri
+
+Böylece her endpoint içinde tekrar tekrar yetki kontrolü yazmak yerine tek bir middleware üzerinden güvenli ve sürdürülebilir bir yapı kurulmuştur.
+
+---
+
+## Transaction Yapısının Workspace’e Taşınması
+
+Transaction endpointleri workspace bazlı hale getirildi.
+
+Önceki yapı genel olarak kullanıcıya bağlı çalışırken, yeni yapı şu formata taşındı:
+
+Bu yapıda:
+
+workspaceId body’den değil route parametresinden alınır.
+createdBy bilgisi client tarafından gönderilmez, JWT içerisindeki kullanıcı bilgisinden alınır.
+Transaction kayıtları artık ilgili workspace’e bağlı olarak oluşturulur ve listelenir.
+
+Bu sayede client tarafında workspaceId veya createdBy gibi kritik alanların manipüle edilmesi engellenmiştir.
+
+
+veritabanı seviyesinde duplicate kayıtları engellemek ve sorgu performansını artırmak için index yapıları kullanıldı:
+
+workspaceId + userId compound index
+Pending invitation tekrarını önlemek için partial unique index
+
+
+
+Çözüm sırası bence şöyle olmalı
+1. Backend error handler düzeltilecek
+
+Çünkü HTML hata response’u diğer tüm frontend hata yönetimini bozuyor.
+
+2. Register/login verification flow düzeltilecek
+
+Auth flow temel olduğu için önce bunu sağlamlaştırmak lazım.
+
+3. Workspace sayfası ayrı modül yapılacak
+
+Settings içinden çıkaracağız.
+
+4. Workspace listeleme + aktif workspace değiştirme ekranı yapılacak
+
+Desktop ve mobile beraber düşünülmeli.
+
+5. Transaction sonrası total/summary refresh bug’ı çözülecek
+
+Yeni kayıt eklenince dashboard güncellenecek.
+
+6. Mobil workspace selector düzeltilecek
+
+Mobil kullanılabilirlik için şart.
+
+7. Layout/padding sistemi toparlanacak
+
+Sayfaların genel gövdesi hizaya girecek.
+
+8. Invitation toast error mapping yapılacak
+
+Daha profesyonel, i18n uyumlu mesajlar gelecek.

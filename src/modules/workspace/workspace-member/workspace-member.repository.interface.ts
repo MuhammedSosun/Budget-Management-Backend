@@ -25,4 +25,12 @@ export interface IWorkspaceMemberRepository
         memberId: string,
         role: Exclude<WorkspaceRole, "OWNER">,
     ): Promise<IWorkspaceMember | null>;
+    findOne(filter: {
+        workspaceId: string;
+        userId: string;
+        role?: "OWNER" | "EDITOR" | "VIEWER";
+    }): Promise<IWorkspaceMember | null>;
+
+    deleteManyByWorkspaceId(workspaceId: string): Promise<void>;
+
 }

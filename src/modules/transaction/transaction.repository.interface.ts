@@ -41,9 +41,10 @@ export interface ITransactionRepository extends IBaseRepository<ITransaction> {
     workspaceId: string,
     data: Partial<ITransaction>,
   ): Promise<ITransaction | null>;
-
   deleteByIdAndWorkspaceId(
     transactionId: string,
     workspaceId: string,
   ): Promise<ITransaction | null>;
+  deleteManyByWorkspaceId(workspaceId: string): Promise<void>;
+
 }

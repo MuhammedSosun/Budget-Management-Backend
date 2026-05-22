@@ -71,4 +71,15 @@ export class WorkspaceMemberRepository
             .populate("userId", "firstName lastName email avatarUrl")
             .exec();
     }
+    async findOne(filter: {
+        workspaceId: string;
+        userId: string;
+        role?: "OWNER" | "EDITOR" | "VIEWER";
+    }): Promise<IWorkspaceMember | null> {
+        return this.model.findOne(filter).exec();
+    }
+    async deleteManyByWorkspaceId(workspaceId: string): Promise<void> {
+        await this.model.deleteMany({ workspaceId }).exec();
+    }
+
 }

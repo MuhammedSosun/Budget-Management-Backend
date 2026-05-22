@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyAccessToken } from "../../utils/token";
 import { AppError } from "../../exceptions/AppError";
-import { ErrorMessages } from "../../exceptions/errorMessages";
+import { ErrorCode } from "../../exceptions/ErrorCodes";
 
 export const authMiddleware = (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ) => {
   try {
@@ -21,14 +21,10 @@ export const authMiddleware = (
     }
 
     if (!token) {
-      throw new AppError(ErrorMessages.TOKEN_NOT_FOUND, 401);
+      throw new AppError(ErrorCode.TOKEN_NOT_FOUND, 401);
     }
 
     const decoded = verifyAccessToken(token);
-
-    if (!decoded) {
-      throw new AppError(ErrorMessages.INVALID_OR_EXPIRED_TOKEN, 401);
-    }
 
     req.user = decoded;
 
