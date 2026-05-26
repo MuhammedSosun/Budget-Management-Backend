@@ -98,6 +98,8 @@ export class AuthService {
     const payload = {
       userId: user._id.toString(),
       email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
     };
 
     const accessToken = generateAccessToken(payload);
@@ -175,6 +177,8 @@ export class AuthService {
     const tokenPayload = {
       userId: user._id.toString(),
       email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
     };
 
     const accessToken = generateAccessToken(tokenPayload);

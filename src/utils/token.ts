@@ -5,6 +5,8 @@ import { ErrorCode } from "../exceptions/ErrorCodes";
 export interface TokenPayload {
   userId: string;
   email: string;
+  firstName: string;
+  lastName: string;
 }
 
 export const generateAccessToken = (payload: TokenPayload) => {

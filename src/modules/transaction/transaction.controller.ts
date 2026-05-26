@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { TransactionService } from "./transaction.service";
 import { TransactionRepository } from "./transaction.repository";
 import getPagination from "../../utils/pageable";
+import { publishTransactionEvent } from "./transaction.events";
 
 const transactionRepo = new TransactionRepository();
 const transactionService = new TransactionService(transactionRepo);
@@ -20,6 +21,16 @@ export const createTransaction = async (
       createdBy,
       req.body,
     );
+
+    publishTransactionEvent({
+      workspaceId,
+      action: "created",
+      transaction: result,
+      actor: {
+        userId: req.user.userId,
+        email: req.user.email,
+      },
+    });
 
     res.status(201).json({
       message: "İşlem başarıyla oluşturuldu",
@@ -78,7 +89,22 @@ export const deleteTransaction = async (
   try {
     const transactionId = req.params.id as string;
     const workspaceId = req.params.workspaceId as string;
-    const result = await transactionService.deleteTransaction(transactionId, workspaceId);
+
+    const result = await transactionService.deleteTransaction(
+      transactionId,
+      workspaceId,
+    );
+
+    publishTransactionEvent({
+      workspaceId,
+      action: "deleted",
+      transactionId,
+      actor: {
+        userId: req.user.userId,
+        email: req.user.email,
+      },
+    });
+
     res.status(200).json({
       message: "İşlem silindi",
       data: result,
@@ -102,6 +128,17 @@ export const updateTransaction = async (
       workspaceId,
       req.body,
     );
+
+    publishTransactionEvent({
+      workspaceId,
+      action: "updated",
+      transaction: result,
+      transactionId,
+      actor: {
+        userId: req.user.userId,
+        email: req.user.email,
+      },
+    });
 
     res.status(200).json({
       message: "İşlem güncellendi",

@@ -10,6 +10,16 @@ import { WorkspaceInvitationRepository } from "./workspace-invitation/workspace-
 import { WorkspaceInvitationService } from "./workspace-invitation/workspace-invitation.service";
 import { TransactionRepository } from "../transaction/transaction.repository";
 import { UserRepository } from "../user/user.repository";
+import {
+    publishWorkspaceUpdatedEvent,
+    publishWorkspaceDeletedEvent,
+    publishMemberUpdatedEvent,
+    publishMemberRemovedEvent,
+    publishMemberJoinedEvent,
+    publishInvitationCreatedEvent,
+    publishInvitationAcceptedEvent,
+    publishInvitationRejectedEvent,
+} from "./workspace-event.publisher";
 
 import {
     createWorkspaceSchema,
@@ -113,11 +123,19 @@ export const updateWorkspaceMemberRole = async (
 ) => {
     try {
         const parsedBody = updateWorkspaceMemberRoleSchema.parse(req.body);
+        const workspaceId = req.params.workspaceId as string;
 
         const result = await workspaceMemberService.updateWorkspaceMemberRole({
-            workspaceId: new Types.ObjectId(req.params.workspaceId as string),
+            workspaceId: new Types.ObjectId(workspaceId),
             memberId: req.params.memberId as string,
             role: parsedBody.role,
+        });
+
+        publishMemberUpdatedEvent({
+            workspaceId,
+            actorUserId: req.user.userId,
+            targetUserId: result.user.id,
+            member: result,
         });
 
         return res.status(200).json({
@@ -135,10 +153,19 @@ export const removeWorkspaceMember = async (
     next: NextFunction,
 ) => {
     try {
+        const workspaceId = req.params.workspaceId as string;
+
         const result = await workspaceMemberService.removeWorkspaceMember({
-            workspaceId: new Types.ObjectId(req.params.workspaceId as string),
+            workspaceId: new Types.ObjectId(workspaceId),
             memberId: req.params.memberId as string,
             requestUserId: new Types.ObjectId(req.user.userId),
+        });
+
+        publishMemberRemovedEvent({
+            workspaceId,
+            actorUserId: req.user.userId,
+            removedUserId: result.userId,
+            member: result,
         });
 
         return res.status(200).json({
@@ -156,14 +183,20 @@ export const createWorkspaceInvitation = async (
     next: NextFunction,
 ) => {
     try {
-
         const parsedBody = createWorkspaceInvitationSchema.parse(req.body);
+        const workspaceId = req.params.workspaceId as string;
 
         const result = await workspaceInvitationService.createWorkspaceInvitation({
-            workspaceId: new Types.ObjectId(req.params.workspaceId as string),
+            workspaceId: new Types.ObjectId(workspaceId),
             invitedByUserId: new Types.ObjectId(req.user.userId),
             email: parsedBody.email,
             role: parsedBody.role,
+        });
+
+        publishInvitationCreatedEvent({
+            workspaceId,
+            actorUserId: req.user.userId,
+            invitation: result,
         });
 
         return res.status(201).json({
@@ -187,6 +220,20 @@ export const acceptWorkspaceInvitation = async (
             userEmail: req.user.email,
         });
 
+        publishInvitationAcceptedEvent({
+            workspaceId: result.workspaceId,
+            actorUserId: req.user.userId,
+            targetUserId: req.user.userId,
+            invitation: result,
+        });
+
+        publishMemberJoinedEvent({
+            workspaceId: result.workspaceId,
+            actorUserId: req.user.userId,
+            joinedUserId: req.user.userId,
+            member: result,
+        });
+
         return res.status(200).json({
             message: "Workspace daveti kabul edildi",
             data: result,
@@ -205,6 +252,13 @@ export const rejectWorkspaceInvitation = async (
         const result = await workspaceInvitationService.rejectWorkspaceInvitation({
             token: req.params.token as string,
             userEmail: req.user.email,
+        });
+
+        publishInvitationRejectedEvent({
+            workspaceId: result.workspaceId,
+            actorUserId: req.user.userId,
+            targetUserId: req.user.userId,
+            invitation: result,
         });
 
         return res.status(200).json({
@@ -271,6 +325,12 @@ export const deleteWorkspace = async (
             userId: req.user.userId,
         });
 
+        publishWorkspaceDeletedEvent({
+            workspaceId,
+            actorUserId: req.user.userId,
+            workspace: result,
+        });
+
         return res.status(200).json({
             message: "Workspace başarıyla silindi.",
             data: result,
@@ -278,7 +338,6 @@ export const deleteWorkspace = async (
     } catch (error) {
         next(error);
     }
-
 };
 
 export const updateWorkspace = async (
@@ -288,12 +347,19 @@ export const updateWorkspace = async (
 ) => {
     try {
         const parsedBody = updateWorkspaceSchema.parse(req.body);
+        const workspaceId = req.params.workspaceId as string;
 
         const result = await workspaceService.updateWorkspace({
-            workspaceId: req.params.workspaceId as string,
+            workspaceId,
             userId: req.user.userId,
             name: parsedBody.name,
             description: parsedBody.description,
+        });
+
+        publishWorkspaceUpdatedEvent({
+            workspaceId,
+            actorUserId: req.user.userId,
+            workspace: result,
         });
 
         return res.status(200).json({

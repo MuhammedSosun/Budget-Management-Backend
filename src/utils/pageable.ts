@@ -13,7 +13,7 @@ interface PaginationResult {
 
 const getPagination = (query: PageableQuery): PaginationResult => {
   const page = parseInt(query.page || "1", 10) || 1;
-  const size = parseInt(query.size || "10", 10) || 10;
+  const size = parseInt(query.size || "5", 10) || 5;
 
   const limit = size;
   const offset = (page - 1) * size;
