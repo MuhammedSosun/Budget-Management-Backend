@@ -4,14 +4,16 @@ import { AppError } from "../../exceptions/AppError";
 import { ErrorCode } from "../../exceptions/ErrorCodes";
 import { ITransactionRepository } from "./transaction.repository.interface";
 import { CurrencyCode } from "../../models/transaction.model";
-
+import { BudgetUsageService } from "../budget-limit/budget-usage.service";
+import { normalizeCategory } from "../../utils/normalizeCategory";
 export class TransactionService {
   private readonly rates = {
     USD_TRY: 32.2,
     EUR_TRY: 34.96,
   };
 
-  constructor(private readonly transactionRepository: ITransactionRepository) { }
+  constructor(private readonly transactionRepository: ITransactionRepository,
+    private readonly budgetUsageService: BudgetUsageService) { }
 
   private validateCurrency(currency: CurrencyCode) {
     const allowedCurrencies: CurrencyCode[] = ["TRY", "USD", "EUR"];
@@ -60,7 +62,6 @@ export class TransactionService {
       EUR: Number((amountInTRY / this.rates.EUR_TRY).toFixed(2)),
     };
   }
-
   async createTransaction(
     workspaceId: string,
     createdBy: string,
@@ -70,8 +71,11 @@ export class TransactionService {
       transactionData.input_details,
     );
 
+    const normalizedCategory = normalizeCategory(transactionData.category);
+
     const transaction = await this.transactionRepository.create({
       ...transactionData,
+      category: normalizedCategory,
       conversions,
       workspaceId: new Types.ObjectId(workspaceId),
       createdBy: new Types.ObjectId(createdBy),
@@ -81,7 +85,24 @@ export class TransactionService {
       throw new AppError(ErrorCode.TRANSACTION_CREATE_FAILED, 500);
     }
 
-    return transaction;
+    let budgetWarning = null;
+
+    if (
+      transaction.type === "expense" &&
+      this.budgetUsageService
+    ) {
+      budgetWarning =
+        await this.budgetUsageService.checkBudgetLimitAfterTransaction({
+          workspaceId,
+          category: transaction.category,
+          transactionDate: transaction.date,
+        });
+    }
+
+    return {
+      transaction,
+      budgetWarning,
+    };
   }
 
   async findAllByWorkspaceId(
@@ -116,6 +137,8 @@ export class TransactionService {
       transactionData.input_details,
     );
 
+    const normalizedCategory = normalizeCategory(transactionData.category);
+
     const updatedTransaction =
       await this.transactionRepository.updateByIdAndWorkspaceId(
         id,
@@ -125,7 +148,7 @@ export class TransactionService {
           input_details: transactionData.input_details,
           conversions,
           type: transactionData.type,
-          category: transactionData.category,
+          category: normalizedCategory,
           date: transactionData.date,
           description: transactionData.description,
         },
@@ -135,7 +158,24 @@ export class TransactionService {
       throw new AppError(ErrorCode.TRANSACTION_NOT_FOUND, 404);
     }
 
-    return updatedTransaction;
+    let budgetWarning = null;
+
+    if (
+      updatedTransaction.type === "expense" &&
+      this.budgetUsageService
+    ) {
+      budgetWarning =
+        await this.budgetUsageService.checkBudgetLimitAfterTransaction({
+          workspaceId,
+          category: updatedTransaction.category,
+          transactionDate: updatedTransaction.date,
+        });
+    }
+
+    return {
+      transaction: updatedTransaction,
+      budgetWarning,
+    };
   }
 
   async findTransactionById(id: string, workspaceId: string) {

@@ -65,4 +65,11 @@ transactionSchema.index({ workspaceId: 1, date: -1 });
 transactionSchema.index({ workspaceId: 1, type: 1 });
 transactionSchema.index({ workspaceId: 1, category: 1 });
 transactionSchema.index({ workspaceId: 1, createdBy: 1 });
+
+transactionSchema.index({
+  workspaceId: 1,
+  type: 1,
+  category: 1,
+  date: 1,
+});
 export default model<ITransaction>("Transaction", transactionSchema);

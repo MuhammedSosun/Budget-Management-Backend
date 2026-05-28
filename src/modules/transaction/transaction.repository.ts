@@ -215,7 +215,86 @@ export class TransactionRepository
       value: totals[category],
     }));
   }
+  async getMonthlyExpenseTotalByCategory(params: {
+    workspaceId: string;
+    category: string;
+    currency: CurrencyCode;
+    startDate: Date;
+    endDate: Date;
+  }): Promise<number> {
+    const { workspaceId, category, currency, startDate, endDate } = params;
 
+    const result = await this.model
+      .aggregate<{ total: number }>([
+        {
+          $match: {
+            workspaceId: this.toObjectId(workspaceId),
+            type: "expense",
+            category,
+            date: {
+              $gte: startDate,
+              $lt: endDate,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            total: {
+              $sum: `$conversions.${currency}`,
+            },
+          },
+        },
+      ])
+      .exec();
+
+    return result[0]?.total ?? 0;
+  }
+
+  async getMonthlyExpenseTotalsByCategories(params: {
+    workspaceId: string;
+    categories: string[];
+    currency: CurrencyCode;
+    startDate: Date;
+    endDate: Date;
+  }): Promise<Record<string, number>> {
+    const { workspaceId, categories, currency, startDate, endDate } = params;
+
+    if (categories.length === 0) {
+      return {};
+    }
+
+    const result = await this.model
+      .aggregate<{ _id: string; total: number }>([
+        {
+          $match: {
+            workspaceId: this.toObjectId(workspaceId),
+            type: "expense",
+            category: {
+              $in: categories,
+            },
+            date: {
+              $gte: startDate,
+              $lt: endDate,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: "$category",
+            total: {
+              $sum: `$conversions.${currency}`,
+            },
+          },
+        },
+      ])
+      .exec();
+
+    return result.reduce<Record<string, number>>((acc, item) => {
+      acc[item._id] = item.total;
+      return acc;
+    }, {});
+  }
   async getTrendStats(
     workspaceId: string,
     period: "weekly" | "monthly" = "weekly",
@@ -288,4 +367,5 @@ export class TransactionRepository
       })
       .exec();
   }
+
 }

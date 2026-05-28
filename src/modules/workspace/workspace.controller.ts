@@ -29,6 +29,8 @@ import {
 } from "./workspace.validation";
 import { AppError } from "../../exceptions/AppError";
 import { ErrorCode } from "../../exceptions/ErrorCodes";
+import { BudgetLimitRepository } from "../budget-limit/budget-limit.repository";
+import { BudgetUsageService } from "../budget-limit/budget-usage.service";
 
 
 const workspaceRepository = new WorkspaceRepository();
@@ -36,11 +38,18 @@ const workspaceMemberRepository = new WorkspaceMemberRepository();
 const userRepository = new UserRepository();
 const workspaceInvitationRepository = new WorkspaceInvitationRepository();
 const transactionRepository = new TransactionRepository();
+const budgetLimitRepository = new BudgetLimitRepository();
+const budgetUsageService = new BudgetUsageService(
+    budgetLimitRepository,
+    transactionRepository
+);
 const workspaceService = new WorkspaceService(
     workspaceRepository,
     workspaceMemberRepository,
     workspaceInvitationRepository,
-    transactionRepository
+    transactionRepository,
+    budgetLimitRepository,
+    budgetUsageService
 
 );
 

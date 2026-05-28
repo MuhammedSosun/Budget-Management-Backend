@@ -4,6 +4,7 @@ import authRoutes from "./auth.routes";
 import userRoutes from "./user.routes";
 import workspaceRoutes from "./workspace.routes";
 import workspaceEventRoutes from "./workspace-events.routes";
+import budgetLimitRoutes from "./budget-limit.routes"
 
 export const setRoutes = (app: Application) => {
   app.use("/api/auth", authRoutes);
@@ -11,4 +12,5 @@ export const setRoutes = (app: Application) => {
   app.use("/api/users", userRoutes);
   app.use("/api/workspaces", workspaceRoutes);
   app.use("/api/workspace-events", workspaceEventRoutes);
+  app.use("/api/workspaces/:workspaceId/budget-limits", budgetLimitRoutes);
 };

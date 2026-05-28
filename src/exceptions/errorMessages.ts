@@ -91,5 +91,11 @@ export const ErrorMessages: Record<ErrorCode, string> = {
     [ErrorCode.DEFAULT_WORKSPACE_CANNOT_BE_LEFT]: "Default workspace cannot be left.",
     [ErrorCode.WORKSPACE_OWNER_CANNOT_LEAVE]: "Owner cannot leave the workspace.",
 
+    [ErrorCode.BUDGET_LIMIT_ALREADY_EXISTS]: "Budget limit for this category and period already exists.",
+    [ErrorCode.BUDGET_LIMIT_CREATE_FAILED]: "Failed to create budget limit.",
+    [ErrorCode.BUDGET_LIMIT_NOT_FOUND]: "Budget limit not found.",
+    [ErrorCode.BUDGET_LIMIT_UPDATE_FAILED]: "Failed to update budget limit.",
+    [ErrorCode.INVALID_BUDGET_MONTH]: "Invalid budget month.",
+
 
 };

@@ -5,6 +5,9 @@ import { IWorkspaceInvitationRepository } from "./workspace-invitation/workspace
 import { AppError } from "../../exceptions/AppError";
 import { ErrorCode } from "../../exceptions/ErrorCodes";
 import { ITransactionRepository } from "../transaction/transaction.repository.interface";
+import { IBudgetLimitRepository } from "../budget-limit/budget-limit.repository.interface";
+import { BudgetUsageService } from "../budget-limit/budget-usage.service";
+
 interface CreateDefaultWorkspaceParams {
     userId: Types.ObjectId;
     firstName: string;
@@ -38,6 +41,8 @@ export class WorkspaceService {
         private readonly workspaceMemberRepository: IWorkspaceMemberRepository,
         private readonly workspaceInvitationRepository: IWorkspaceInvitationRepository,
         private readonly transactionRepository: ITransactionRepository,
+        private readonly budgetLimitRepository: IBudgetLimitRepository,
+        private readonly budgetUsageService: BudgetUsageService,
     ) { }
 
     async createDefaultWorkspaceForUser({
@@ -157,6 +162,8 @@ export class WorkspaceService {
         }
 
         await this.transactionRepository.deleteManyByWorkspaceId(workspaceId);
+
+        await this.budgetLimitRepository.deleteManyByWorkspaceId(workspaceId);
 
         await this.workspaceInvitationRepository.deleteManyByWorkspaceId(workspaceId);
 

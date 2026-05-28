@@ -3,9 +3,21 @@ import { TransactionService } from "./transaction.service";
 import { TransactionRepository } from "./transaction.repository";
 import getPagination from "../../utils/pageable";
 import { publishTransactionEvent } from "./transaction.events";
+import { BudgetLimitRepository } from "../budget-limit/budget-limit.repository";
+import { BudgetUsageService } from "../budget-limit/budget-usage.service";
 
 const transactionRepo = new TransactionRepository();
-const transactionService = new TransactionService(transactionRepo);
+const budgetLimitRepository = new BudgetLimitRepository();
+
+const budgetUsageService = new BudgetUsageService(
+  budgetLimitRepository,
+  transactionRepo,
+);
+
+const transactionService = new TransactionService(
+  transactionRepo,
+  budgetUsageService,
+);
 
 export const createTransaction = async (
   req: Request,
@@ -25,7 +37,7 @@ export const createTransaction = async (
     publishTransactionEvent({
       workspaceId,
       action: "created",
-      transaction: result,
+      transaction: result.transaction,
       actor: {
         userId: req.user.userId,
         email: req.user.email,
@@ -34,7 +46,8 @@ export const createTransaction = async (
 
     res.status(201).json({
       message: "İşlem başarıyla oluşturuldu",
-      data: result,
+      data: result.transaction,
+      budgetWarning: result.budgetWarning,
     });
   } catch (error) {
     next(error);
@@ -132,7 +145,7 @@ export const updateTransaction = async (
     publishTransactionEvent({
       workspaceId,
       action: "updated",
-      transaction: result,
+      transaction: result.transaction,
       transactionId,
       actor: {
         userId: req.user.userId,
@@ -142,7 +155,8 @@ export const updateTransaction = async (
 
     res.status(200).json({
       message: "İşlem güncellendi",
-      data: result,
+      data: result.transaction,
+      budgetWarning: result.budgetWarning,
     });
   } catch (error) {
     next(error);

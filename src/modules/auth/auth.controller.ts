@@ -7,6 +7,8 @@ import { WorkspaceMemberRepository } from "../workspace/workspace-member/workspa
 import { WorkspaceService } from "../workspace/workspace.service";
 import { WorkspaceInvitationRepository } from "../workspace/workspace-invitation/workspace-invitation.repository";
 import { TransactionRepository } from "../transaction/transaction.repository";
+import { BudgetLimitRepository } from "../budget-limit/budget-limit.repository";
+import { BudgetUsageService } from "../budget-limit/budget-usage.service";
 
 
 
@@ -23,12 +25,19 @@ const workspaceRepository = new WorkspaceRepository();
 const workspaceMemberRepository = new WorkspaceMemberRepository();
 const workspaceInvitationRepository = new WorkspaceInvitationRepository();
 const transactionRepository = new TransactionRepository();
+const budgetLimitRepository = new BudgetLimitRepository();
+const budgetUsageService = new BudgetUsageService(
+  budgetLimitRepository,
+  transactionRepository
+);
 
 const workspaceService = new WorkspaceService(
   workspaceRepository,
   workspaceMemberRepository,
   workspaceInvitationRepository,
-  transactionRepository
+  transactionRepository,
+  budgetLimitRepository,
+  budgetUsageService
 );
 
 const authService = new AuthService(
