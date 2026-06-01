@@ -12,8 +12,10 @@ export class TransactionService {
     EUR_TRY: 34.96,
   };
 
-  constructor(private readonly transactionRepository: ITransactionRepository,
-    private readonly budgetUsageService: BudgetUsageService) { }
+  constructor(
+    private readonly transactionRepository: ITransactionRepository,
+    private readonly budgetUsageService: BudgetUsageService,
+  ) {}
 
   private validateCurrency(currency: CurrencyCode) {
     const allowedCurrencies: CurrencyCode[] = ["TRY", "USD", "EUR"];
@@ -87,10 +89,7 @@ export class TransactionService {
 
     let budgetWarning = null;
 
-    if (
-      transaction.type === "expense" &&
-      this.budgetUsageService
-    ) {
+    if (transaction.type === "expense" && this.budgetUsageService) {
       budgetWarning =
         await this.budgetUsageService.checkBudgetLimitAfterTransaction({
           workspaceId,
@@ -160,10 +159,7 @@ export class TransactionService {
 
     let budgetWarning = null;
 
-    if (
-      updatedTransaction.type === "expense" &&
-      this.budgetUsageService
-    ) {
+    if (updatedTransaction.type === "expense" && this.budgetUsageService) {
       budgetWarning =
         await this.budgetUsageService.checkBudgetLimitAfterTransaction({
           workspaceId,
@@ -236,5 +232,4 @@ export class TransactionService {
       currency,
     );
   }
-
 }

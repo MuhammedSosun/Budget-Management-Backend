@@ -4,7 +4,8 @@ import { IUserRepository } from "./user.repository.interface";
 
 export class UserRepository
   extends BaseRepository<IUser>
-  implements IUserRepository {
+  implements IUserRepository
+{
   constructor() {
     super(User);
   }

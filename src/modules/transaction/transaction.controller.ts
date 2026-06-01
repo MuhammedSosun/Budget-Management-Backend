@@ -171,7 +171,10 @@ export const findTransactionById = async (
   try {
     const transactionId = req.params.id as string;
     const workspaceId = req.params.workspaceId as string;
-    const result = await transactionService.findTransactionById(transactionId, workspaceId);
+    const result = await transactionService.findTransactionById(
+      transactionId,
+      workspaceId,
+    );
     res.status(200).json({
       message: "İşlem bulundu",
       data: result,
@@ -225,7 +228,10 @@ export const getCategoryStats = async (
   try {
     const workspaceId = req.params.workspaceId as string;
     const currency = (req.query.currency as "TRY" | "USD" | "EUR") || "TRY";
-    const result = await transactionService.getCategoryStats(workspaceId, currency);
+    const result = await transactionService.getCategoryStats(
+      workspaceId,
+      currency,
+    );
     res.status(200).json({
       message: "Kategori istatistikleri bulundu",
       data: result,

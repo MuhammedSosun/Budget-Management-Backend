@@ -216,3 +216,320 @@ Sayfaların genel gövdesi hizaya girecek.
 8. Invitation toast error mapping yapılacak
 
 Daha profesyonel, i18n uyumlu mesajlar gelecek.
+
+
+
+## Budget Limit ve Şifremi Unuttum Özellikleri
+
+Bu geliştirme sürecinde projeye iki önemli özellik eklendi:
+
+1. Workspace bazlı bütçe limiti yönetimi
+2. Şifremi unuttum / şifre sıfırlama akışı
+
+Bu özellikler hem backend hem frontend tarafında mevcut mimariye uygun şekilde geliştirildi.
+
+---
+
+## 1. Budget Limit Özelliği
+
+Budget Limit özelliği ile kullanıcılar, içinde bulundukları workspace için kategori bazlı aylık bütçe limitleri oluşturabilir.
+
+Örneğin kullanıcı bir workspace içinde:
+
+- Food kategorisi için 5000 TRY
+- Transport kategorisi için 2000 TRY
+- Shopping kategorisi için 3000 TRY
+
+gibi aylık harcama limitleri tanımlayabilir.
+
+Bu yapı sayesinde kullanıcı, belirli bir ay içinde hangi kategoride ne kadar harcama yaptığını, limitine ne kadar yaklaştığını ve limiti aşıp aşmadığını görebilir.
+
+---
+
+### Backend Tarafında Yapılanlar
+
+Budget Limit için ayrı bir yapı oluşturuldu.
+
+Eklenen temel özellikler:
+
+- Workspace bazlı budget limit oluşturma
+- Budget limit listeleme
+- Budget limit güncelleme
+- Budget limit silme
+- Belirli ay için kategori bazlı kullanım hesaplama
+- Genel bütçe özeti hesaplama
+
+Budget limit kayıtları workspace ile ilişkilendirildi. Böylece her workspace kendi bütçe limitlerine sahip olabilir.
+
+---
+
+### Budget Limit Model Mantığı
+
+Her bütçe limiti aşağıdaki temel bilgileri içerir:
+
+- workspaceId
+- category
+- limit amount
+- currency
+- period
+- createdBy
+
+Şu an period alanı monthly olarak kullanılmaktadır. Yani sistem aylık bütçe takibi üzerine kuruludur.
+
+Kategori isimleri normalize edilerek saklanır. Bu sayede aynı kategori için farklı yazım biçimlerinden kaynaklanabilecek tekrarların önüne geçilir.
+
+---
+
+### Budget Usage Hesaplama
+
+Budget Usage tarafında sistem şu mantıkla çalışır:
+
+1. Kullanıcı bir ay seçer.
+2. Sistem o ayın başlangıç ve bitiş tarihlerini hesaplar.
+3. Workspace içindeki budget limit kategorileri alınır.
+4. Transaction kayıtları içinden sadece expense olanlar dikkate alınır.
+5. Her kategori için toplam harcama hesaplanır.
+6. Limit, harcanan tutar ve kalan tutar karşılaştırılır.
+7. Kategoriye göre durum belirlenir.
+
+Kullanılan durumlar:
+
+- SAFE
+- WARNING
+- EXCEEDED
+
+SAFE, limitin güvenli seviyede olduğunu belirtir.
+
+WARNING, kullanıcının limite yaklaştığını belirtir.
+
+EXCEEDED, limitin aşıldığını belirtir.
+
+---
+
+### Budget Summary
+
+Budget Summary endpoint’i ile seçilen ay için genel bir özet döndürülür.
+
+Bu özet içinde:
+
+- toplam bütçe limiti sayısı
+- güvenli kategoriler
+- uyarı durumundaki kategoriler
+- limiti aşan kategoriler
+- toplam limit
+- toplam harcama
+- toplam kalan bütçe
+- genel kullanım yüzdesi
+
+gibi bilgiler yer alır.
+
+
+---
+
+### Frontend Tarafında Yapılanlar
+
+Frontend tarafında Budget Limit ekranı geliştirildi.
+
+Kullanıcı bu ekranda:
+
+- yeni bütçe limiti oluşturabilir
+- mevcut limiti güncelleyebilir
+- limiti silebilir
+- ay seçebilir
+- para birimi seçebilir
+- kategori bazlı bütçe kullanımını görebilir
+
+Budget Limit formunda validation kontrolleri eklendi.
+
+Kontrol edilen alanlar:
+
+- kategori boş olamaz
+- kategori minimum ve maksimum uzunluk sınırlarına uymalıdır
+- tutar boş olamaz
+- tutar geçerli bir sayı olmalıdır
+- tutar sıfırdan büyük olmalıdır
+- tutar maksimum limite takılmamalıdır
+- tutar en fazla iki ondalık basamak içermelidir
+- para birimi zorunludur
+
+Mobil görünüm için de düzenlemeler yapıldı. Toolbar, filtre alanları, ay seçimi ve currency select alanları küçük ekranlarda daha düzgün görünecek şekilde responsive hale getirildi.
+
+---
+
+## 2. Şifremi Unuttum Özelliği
+
+Şifremi unuttum özelliği ile kullanıcı, hesabının şifresini mail üzerinden güvenli şekilde sıfırlayabilir.
+
+Bu akışta Mailtrap kullanılmıştır. Mailtrap test ortamı olduğu için gönderilen e-postalar gerçek kullanıcı mail kutusuna değil, Mailtrap inbox içerisine düşmektedir.
+
+---
+
+### Şifre Sıfırlama Akışı
+
+Şifre sıfırlama süreci şu şekilde çalışır:
+
+1. Kullanıcı “Şifremi Unuttum” sayfasına gider.
+2. Kayıtlı e-posta adresini girer.
+3. Backend bu e-posta için kullanıcı olup olmadığını kontrol eder.
+4. Güvenlik nedeniyle kullanıcı bulunmasa bile aynı başarılı cevap döndürülür.
+5. Kullanıcı varsa random bir reset token oluşturulur.
+6. Token veritabanına açık haliyle değil, hashlenmiş haliyle kaydedilir.
+7. Token için geçerlilik süresi belirlenir.
+8. Kullanıcıya Mailtrap üzerinden reset linki gönderilir.
+9. Kullanıcı maildeki linke tıklar.
+10. Frontend reset-password sayfasını açar.
+11. Kullanıcı yeni şifresini ve şifre tekrarını girer.
+12. Backend token kontrolü yapar.
+13. Token geçerliyse şifre güncellenir.
+14. Reset token temizlenir.
+15. Kullanıcının mevcut refresh token bilgisi temizlenir.
+
+---
+
+### Güvenlik İçin Yapılanlar
+
+Şifre sıfırlama sürecinde güvenlik açısından bazı önlemler alındı.
+
+Önlemler:
+
+- Reset token random olarak oluşturuldu.
+- Token veritabanında plain text olarak tutulmadı.
+- Token SHA-256 ile hashlenerek saklandı.
+- Token için süre sınırı eklendi.
+- Süresi geçmiş token ile işlem yapılması engellendi.
+- Başarılı şifre güncellemesinden sonra reset token temizlendi.
+- Şifre güncellendiğinde refresh token null yapıldı.
+- Böylece eski oturumların geçerliliği kaldırıldı.
+- Kullanıcı bulunmasa bile aynı başarılı cevap döndürülerek email enumeration riski azaltıldı.
+
+---
+
+### Backend Tarafında Yapılanlar
+
+AuthService içine forgotPassword ve resetPassword metotları eklendi.
+
+forgotPassword metodu:
+
+- e-posta adresine göre kullanıcıyı bulur
+- kullanıcı yoksa yine başarılı cevap döner
+- Google hesabı olup local password olmayan kullanıcılar için reset maili göndermez
+- reset token üretir
+- token hashini kullanıcı üzerinde saklar
+- token süresini belirler
+- reset linkini oluşturur
+- MailService üzerinden reset maili gönderir
+
+resetPassword metodu:
+
+- gelen tokenı hashler
+- veritabanındaki hash ile kullanıcıyı bulur
+- token geçersizse hata döner
+- token süresi dolmuşsa tokenı temizler ve hata döner
+- yeni şifreyi kullanıcıya atar
+- passwordResetToken ve passwordResetTokenExpiresAt alanlarını temizler
+- refreshToken bilgisini null yapar
+- kullanıcıyı kaydeder
+
+User modeline şu alanlar eklendi:
+
+- passwordResetToken
+- passwordResetTokenExpiresAt
+
+---
+
+### MailService Tarafında Yapılanlar
+
+MailService içine şifre sıfırlama maili gönderimi için yeni bir metot eklendi.
+
+Eklenen metot:
+
+- sendPasswordResetLink
+
+Bu metot kullanıcıya şifre sıfırlama bağlantısı içeren HTML mail gönderir.
+
+Mail içeriğinde:
+
+- Bütçem marka başlığı
+- açıklama metni
+- şifre sıfırlama butonu
+- buton çalışmazsa kullanılabilecek direkt reset linki
+- güvenlik bilgilendirmesi
+
+yer almaktadır.
+
+---
+
+### Frontend Tarafında Yapılanlar
+
+Frontend tarafında iki yeni sayfa oluşturuldu:
+
+- ForgotPassword
+- ResetPassword
+
+ForgotPassword sayfasında kullanıcı e-posta adresini girerek reset linki talep eder.
+
+ResetPassword sayfasında kullanıcı yeni şifresini belirler.
+
+ResetPassword formunda iki şifre alanı vardır:
+
+- Yeni Şifre
+- Yeni Şifre Tekrar
+
+Bu sayede kullanıcı şifresini yanlış yazma riskine karşı ikinci kez doğrulama yapar.
+
+---
+
+### Frontend Validation
+
+Başlangıçta validation toast mesajları ile yapıldı. Daha sonra daha profesyonel bir UX için input altı hata gösterimi eklendi.
+
+Bu sayede kullanıcı hatayı sadece toast olarak değil, doğrudan ilgili inputun altında da görebilir.
+
+Kontroller:
+
+ForgotPassword için:
+
+- e-posta boş olamaz
+- e-posta geçerli formatta olmalıdır
+
+ResetPassword için:
+
+- token bulunmalıdır
+- şifre boş olamaz
+- şifre minimum 6 karakter olmalıdır
+- confirm password boş olamaz
+- password ve confirm password aynı olmalıdır
+
+---
+
+### i18n Desteği
+
+ForgotPassword ve ResetPassword sayfalarındaki sabit Türkçe metinler i18n yapısına taşındı.
+
+Böylece sistemin aktif diline göre:
+
+- başlıklar
+- açıklamalar
+- input label değerleri
+- placeholder metinleri
+- validation mesajları
+- toast mesajları
+- button textleri
+
+Türkçe veya İngilizce olarak gösterilebilir.
+
+---
+
+## Error Handling ve Frontend Uyum Süreci
+
+Backend tarafında AppError, ErrorCode ve ErrorMessages yapısı kullanılarak hatalar standart hale getirildi.
+
+Standart hata response yapısı:
+
+```json
+{
+  "success": false,
+  "code": "ERROR_CODE",
+  "message": "Error message",
+  "statusCode": 400
+}

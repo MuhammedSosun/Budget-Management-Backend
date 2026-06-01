@@ -30,7 +30,6 @@ router.post(
   requireWorkspaceRole(["OWNER", "EDITOR"]),
   validate(TransactionSchema),
   createTransaction,
-
 );
 
 router.get(

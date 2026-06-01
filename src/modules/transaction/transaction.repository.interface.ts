@@ -21,15 +21,9 @@ export interface ITransactionRepository extends IBaseRepository<ITransaction> {
     workspaceId: string,
   ): Promise<ITransaction | null>;
 
-  totalIncome(
-    workspaceId: string,
-    currency: CurrencyCode,
-  ): Promise<number>;
+  totalIncome(workspaceId: string, currency: CurrencyCode): Promise<number>;
 
-  totalExpense(
-    workspaceId: string,
-    currency: CurrencyCode,
-  ): Promise<number>;
+  totalExpense(workspaceId: string, currency: CurrencyCode): Promise<number>;
 
   getCategoryStats(
     workspaceId: string,

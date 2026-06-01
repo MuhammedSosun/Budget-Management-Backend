@@ -23,7 +23,7 @@ export class UserService {
   constructor(
     private readonly userRepository: IUserRepository,
     private readonly storageService: StorageService,
-  ) { }
+  ) {}
 
   async updateMe(userId: string, payload: UpdateProfileInput) {
     const firstName = formatName(payload.firstName);

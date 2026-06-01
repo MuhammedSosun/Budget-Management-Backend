@@ -9,8 +9,8 @@ import { WorkspaceInvitationRepository } from "../workspace/workspace-invitation
 import { TransactionRepository } from "../transaction/transaction.repository";
 import { BudgetLimitRepository } from "../budget-limit/budget-limit.repository";
 import { BudgetUsageService } from "../budget-limit/budget-usage.service";
-
-
+import { AppError } from "../../exceptions/AppError";
+import { ErrorCode } from "../../exceptions/ErrorCodes";
 
 const refreshTokenCookieOptions = {
   httpOnly: true,
@@ -28,7 +28,7 @@ const transactionRepository = new TransactionRepository();
 const budgetLimitRepository = new BudgetLimitRepository();
 const budgetUsageService = new BudgetUsageService(
   budgetLimitRepository,
-  transactionRepository
+  transactionRepository,
 );
 
 const workspaceService = new WorkspaceService(
@@ -37,7 +37,7 @@ const workspaceService = new WorkspaceService(
   workspaceInvitationRepository,
   transactionRepository,
   budgetLimitRepository,
-  budgetUsageService
+  budgetUsageService,
 );
 
 const authService = new AuthService(
@@ -92,16 +92,18 @@ export const googleLogin = async (
 ) => {
   try {
     const { credential } = req.body;
+
     if (!credential) {
-      return res.status(400).json({
-        message: "Google credential zorunludur",
-      });
+      throw new AppError(ErrorCode.GOOGLE_LOGIN_FAILED, 400);
     }
+
     const result = await authService.googleLogin(credential);
+
     res.cookie("refreshToken", result.refreshToken, {
       ...refreshTokenCookieOptions,
       maxAge: 4 * 60 * 60 * 1000,
     });
+
     res.status(200).json({
       message: "Google ile başarıyla giriş yapıldı",
       accessToken: result.accessToken,
@@ -121,6 +123,19 @@ export const verifyEmail = async (
 
     const result = await authService.verifyEmail(email, code);
 
+    return res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+export const forgotPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { email } = req.body;
+    const result = await authService.forgotPassword(email);
     return res.status(200).json(result);
   } catch (error) {
     next(error);
@@ -147,16 +162,16 @@ export const refresh = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const token = req.cookies.refreshToken;
-
-  if (!token) {
-    return res
-      .status(401)
-      .json({ message: "Oturum Süresi dolmuş lütfen tekrar giriş yapın" });
-  }
   try {
+    const token = req.cookies.refreshToken;
+
+    if (!token) {
+      throw new AppError(ErrorCode.REFRESH_TOKEN_NOT_FOUND, 401);
+    }
+
     const { accessToken, newRefreshToken, user } =
       await authService.refreshAccessToken(token);
+
     res.cookie("refreshToken", newRefreshToken, {
       ...refreshTokenCookieOptions,
       maxAge: 4 * 60 * 60 * 1000,
@@ -189,6 +204,21 @@ export const logout = async (
 export const me = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await authService.getMe(req.user.userId);
+    return res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+export const resetPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { token, password } = req.body;
+
+    const result = await authService.resetPassword(token, password);
+
     return res.status(200).json(result);
   } catch (error) {
     next(error);

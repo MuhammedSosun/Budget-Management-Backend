@@ -60,7 +60,11 @@ const refreshLimiter = rateLimit({
   handler: createRateLimitHandler(ErrorCode.RATE_LIMIT_REFRESH),
 });
 
-const allowedOrigins = ["http://localhost:5173", "http://dev.butcemx.com:5173"];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://dev.butcemx.com:5173",
+  "http://172.20.10.8:5173",
+];
 
 app.use(express.json());
 app.use(cookieParser());

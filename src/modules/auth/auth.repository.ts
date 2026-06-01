@@ -20,4 +20,9 @@ export class AuthRepository
   async findByGoogleId(googleId: string): Promise<IUser | null> {
     return await this.model.findOne({ googleId }).exec();
   }
+  async findByPasswordResetToken(
+    passwordResetToken: string,
+  ): Promise<IUser | null> {
+    return await this.model.findOne({ passwordResetToken }).exec();
+  }
 }

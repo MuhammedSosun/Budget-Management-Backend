@@ -1,7 +1,4 @@
-import {
-  CurrencyCode,
-  TransactionType,
-} from "../../models/transaction.model";
+import { CurrencyCode, TransactionType } from "../../models/transaction.model";
 
 export interface TransactionRequest {
   title: string;

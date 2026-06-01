@@ -8,7 +8,8 @@ import { ITransactionRepository } from "./transaction.repository.interface";
 
 export class TransactionRepository
   extends BaseRepository<ITransaction>
-  implements ITransactionRepository {
+  implements ITransactionRepository
+{
   constructor() {
     super(Transaction);
   }
@@ -84,9 +85,13 @@ export class TransactionRepository
         : { date: -1 as const };
 
     const [transactions, totalCount] = await Promise.all([
-      this.model.find(query).
-        populate("createdBy", "firstName lastName email avatarUrl").
-        limit(limit).skip(offset).sort(sortOption).exec(),
+      this.model
+        .find(query)
+        .populate("createdBy", "firstName lastName email avatarUrl")
+        .limit(limit)
+        .skip(offset)
+        .sort(sortOption)
+        .exec(),
       this.model.countDocuments(query).exec(),
     ]);
 
@@ -104,7 +109,8 @@ export class TransactionRepository
       .findOne({
         _id: this.toObjectId(transactionId),
         workspaceId: this.toObjectId(workspaceId),
-      }).populate("createdBy", "firstName lastName email avatarUrl")
+      })
+      .populate("createdBy", "firstName lastName email avatarUrl")
       .exec();
   }
 
@@ -307,19 +313,19 @@ export class TransactionRepository
       period === "weekly"
         ? ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"]
         : [
-          "Oca",
-          "Şub",
-          "Mar",
-          "Nis",
-          "May",
-          "Haz",
-          "Tem",
-          "Ağu",
-          "Eyl",
-          "Eki",
-          "Kas",
-          "Ara",
-        ];
+            "Oca",
+            "Şub",
+            "Mar",
+            "Nis",
+            "May",
+            "Haz",
+            "Tem",
+            "Ağu",
+            "Eyl",
+            "Eki",
+            "Kas",
+            "Ara",
+          ];
 
     const totals = labels.map((label) => ({
       name: label,
@@ -347,7 +353,6 @@ export class TransactionRepository
       if (period === "weekly") {
         const jsDay = transaction.date.getDay();
 
-
         const mondayBasedIndex = jsDay === 0 ? 6 : jsDay - 1;
 
         totals[mondayBasedIndex].value += amount;
@@ -367,5 +372,4 @@ export class TransactionRepository
       })
       .exec();
   }
-
 }

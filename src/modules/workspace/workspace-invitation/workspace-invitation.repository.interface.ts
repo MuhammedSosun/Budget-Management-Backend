@@ -5,8 +5,7 @@ import {
 } from "../../../models/workspace-invitation.model";
 import { IBaseRepository } from "../../../repository/IBaseRepository";
 
-export interface IWorkspaceInvitationRepository
-  extends IBaseRepository<IWorkspaceInvitation> {
+export interface IWorkspaceInvitationRepository extends IBaseRepository<IWorkspaceInvitation> {
   findPendingByWorkspaceIdAndEmail(
     workspaceId: Types.ObjectId,
     email: string,

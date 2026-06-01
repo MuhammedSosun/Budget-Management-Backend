@@ -58,9 +58,7 @@ export const idempotencyMiddleware = (
   const originalJson = res.json.bind(res);
 
   res.json = function (body: unknown): Response {
-    const shouldCache =
-      res.statusCode >= 200 &&
-      res.statusCode < 300;
+    const shouldCache = res.statusCode >= 200 && res.statusCode < 300;
 
     if (shouldCache) {
       idempotencyStore.set(key, {

@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
 import {
   generateAccessToken,
@@ -253,6 +254,83 @@ export class AuthService {
 
     return {
       messageCode: "EMAIL_VERIFIED_SUCCESSFULLY",
+    };
+  }
+  async forgotPassword(email: string) {
+    const user = await this.authRepository.findByEmail(email);
+
+    const successResponse = {
+      messageCode: "PASSWORD_RESET_LINK_SENT_IF_EMAIL_EXISTS",
+    };
+
+    if (!user) {
+      return successResponse;
+    }
+
+    if (user.authProvider === "google" && !user.password) {
+      return successResponse;
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenHash = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    user.passwordResetToken = resetTokenHash;
+
+    user.passwordResetTokenExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    await user.save();
+
+    const frontendUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
+
+    try {
+      await mailService.sendPasswordResetLink({
+        to: user.email,
+        firstName: user.firstName,
+        resetLink,
+      });
+    } catch (error) {
+      console.log(error);
+
+      throw new AppError(ErrorCode.FAILED_TO_SEND_PASSWORD_RESET_LINK, 500);
+    }
+
+    return successResponse;
+  }
+
+  async resetPassword(token: string, password: string) {
+    const resetTokenHash = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    const user =
+      await this.authRepository.findByPasswordResetToken(resetTokenHash);
+    if (!user) {
+      throw new AppError(ErrorCode.PASSWORD_RESET_TOKEN_INVALID, 400);
+    }
+    if (
+      !user.passwordResetTokenExpiresAt ||
+      user.passwordResetTokenExpiresAt.getTime() < Date.now()
+    ) {
+      user.passwordResetToken = null;
+      user.passwordResetTokenExpiresAt = null;
+      await user.save();
+
+      throw new AppError(ErrorCode.PASSWORD_RESET_TOKEN_EXPIRED, 400);
+    }
+    user.password = password;
+    user.passwordResetToken = null;
+    user.passwordResetTokenExpiresAt = null;
+    user.refreshToken = null;
+
+    await user.save();
+
+    return {
+      messageCode: "PASSWORD_RESET_SUCCESS",
     };
   }
 

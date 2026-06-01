@@ -4,7 +4,7 @@ import authRoutes from "./auth.routes";
 import userRoutes from "./user.routes";
 import workspaceRoutes from "./workspace.routes";
 import workspaceEventRoutes from "./workspace-events.routes";
-import budgetLimitRoutes from "./budget-limit.routes"
+import budgetLimitRoutes from "./budget-limit.routes";
 
 export const setRoutes = (app: Application) => {
   app.use("/api/auth", authRoutes);

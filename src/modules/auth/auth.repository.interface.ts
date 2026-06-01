@@ -5,4 +5,5 @@ export interface IAuthRepository extends IBaseRepository<IUser> {
   findByEmail(email: string): Promise<IUser | null>;
   findByRefreshToken(token: string): Promise<IUser | null>;
   findByGoogleId(googleId: string): Promise<IUser | null>;
+  findByPasswordResetToken(passwordResetToken: string): Promise<IUser | null>;
 }
