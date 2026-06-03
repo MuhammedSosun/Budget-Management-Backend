@@ -19,6 +19,7 @@ import {
   publishInvitationCreatedEvent,
   publishInvitationAcceptedEvent,
   publishInvitationRejectedEvent,
+  publishMemberLeftEvent,
 } from "./workspace-event.publisher";
 
 import {
@@ -141,7 +142,11 @@ export const updateWorkspaceMemberRole = async (
     publishMemberUpdatedEvent({
       workspaceId,
       actorUserId: req.user.userId,
+      actorEmail: req.user.email,
       targetUserId: result.user.id,
+      targetUserEmail: result.user.email,
+      oldRole: result.oldRole,
+      newRole: result.role,
       member: result,
     });
 
@@ -171,6 +176,7 @@ export const removeWorkspaceMember = async (
     publishMemberRemovedEvent({
       workspaceId,
       actorUserId: req.user.userId,
+      actorEmail: req.user.email,
       removedUserId: result.userId,
       member: result,
     });
@@ -203,6 +209,9 @@ export const createWorkspaceInvitation = async (
     publishInvitationCreatedEvent({
       workspaceId,
       actorUserId: req.user.userId,
+      actorEmail: req.user.email,
+      targetUserId: result.invitedUserId,
+      invitedEmail: result.email,
       invitation: result,
     });
 
@@ -230,14 +239,18 @@ export const acceptWorkspaceInvitation = async (
     publishInvitationAcceptedEvent({
       workspaceId: result.workspaceId,
       actorUserId: req.user.userId,
+      actorEmail: req.user.email,
       targetUserId: req.user.userId,
+      invitedEmail: req.user.email,
       invitation: result,
     });
 
     publishMemberJoinedEvent({
       workspaceId: result.workspaceId,
       actorUserId: req.user.userId,
+      actorEmail: req.user.email,
       joinedUserId: req.user.userId,
+      joinedUserEmail: req.user.email,
       member: result,
     });
 
@@ -264,7 +277,9 @@ export const rejectWorkspaceInvitation = async (
     publishInvitationRejectedEvent({
       workspaceId: result.workspaceId,
       actorUserId: req.user.userId,
+      actorEmail: req.user.email,
       targetUserId: req.user.userId,
+      invitedEmail: req.user.email,
       invitation: result,
     });
 
@@ -384,9 +399,20 @@ export const leaveWorkspace = async (
   next: NextFunction,
 ) => {
   try {
+    const workspaceId = req.params.workspaceId as string;
+
     const result = await workspaceService.leaveWorkspace({
-      workspaceId: req.params.workspaceId as string,
+      workspaceId,
       userId: req.user.userId,
+    });
+
+    publishMemberLeftEvent({
+      workspaceId,
+      actorUserId: req.user.userId,
+      actorEmail: req.user.email,
+      leftUserId: req.user.userId,
+      leftUserEmail: req.user.email,
+      member: result,
     });
 
     return res.status(200).json({

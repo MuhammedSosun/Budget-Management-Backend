@@ -19,7 +19,7 @@ interface RemoveWorkspaceMemberParams {
 export class WorkspaceMemberService {
   constructor(
     private readonly workspaceMemberRepository: IWorkspaceMemberRepository,
-  ) {}
+  ) { }
 
   async getWorkspaceMembers(workspaceId: Types.ObjectId) {
     const members =
@@ -94,6 +94,7 @@ export class WorkspaceMemberService {
         email: user.email,
         avatarUrl: user.avatarUrl || "",
       },
+      oldRole: member.role,
       role: updatedMember.role,
       invitedBy: updatedMember.invitedBy?.toString(),
       createdAt: updatedMember.createdAt,

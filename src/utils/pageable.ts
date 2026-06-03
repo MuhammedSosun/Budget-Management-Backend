@@ -12,8 +12,14 @@ interface PaginationResult {
 }
 
 const getPagination = (query: PageableQuery): PaginationResult => {
-  const page = parseInt(query.page || "1", 10) || 1;
-  const size = parseInt(query.size || "5", 10) || 5;
+  const parsedPage = parseInt(query.page || "1", 10);
+  const parsedSize = parseInt(query.size || "5", 10);
+
+  const page = Number.isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage;
+  const size =
+    Number.isNaN(parsedSize) || parsedSize < 1
+      ? 5
+      : Math.min(parsedSize, 50);
 
   const limit = size;
   const offset = (page - 1) * size;

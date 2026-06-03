@@ -14,6 +14,7 @@ type WorkspaceEventType =
   | "member:updated"
   | "member:removed"
   | "member:joined"
+  | "member:left"
   | "invitation:created"
   | "invitation:accepted"
   | "invitation:rejected";

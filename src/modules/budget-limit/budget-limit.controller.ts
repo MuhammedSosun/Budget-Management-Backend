@@ -5,6 +5,7 @@ import { BudgetLimitService } from "./budget-limit.service";
 import { TransactionRepository } from "../transaction/transaction.repository";
 import { BudgetUsageService } from "./budget-usage.service";
 import { CurrencyCode } from "../../models/transaction.model";
+import { publishBudgetLimitEvent } from "./budget-limit.events";
 
 const budgetLimitRepository = new BudgetLimitRepository();
 const transactionRepository = new TransactionRepository();
@@ -24,6 +25,16 @@ export const createBudgetLimit = async (
       workspaceId: new Types.ObjectId(req.params.workspaceId as string),
       createdBy: new Types.ObjectId(req.user.userId),
       data: req.body,
+    });
+    publishBudgetLimitEvent('created', {
+      workspaceId: req.params.workspaceId as string,
+      budgetLimitId: result._id.toString(),
+      category: result.category,
+      limit: result.limit,
+      actor: {
+        userId: req.user.userId,
+        email: req.user.email,
+      },
     });
 
     return res.status(201).json({
@@ -85,6 +96,16 @@ export const updateBudgetLimit = async (
       budgetLimitId: req.params.budgetLimitId as string,
       data: req.body,
     });
+    publishBudgetLimitEvent("updated", {
+      workspaceId: req.params.workspaceId as string,
+      budgetLimitId: result._id.toString(),
+      category: result.category,
+      limit: result.limit,
+      actor: {
+        userId: req.user.userId,
+        email: req.user.email,
+      },
+    });
 
     return res.status(200).json({
       message: "Bütçe limiti başarıyla güncellendi.",
@@ -104,6 +125,16 @@ export const deleteBudgetLimit = async (
     const result = await budgetLimitService.deleteBudgetLimit({
       workspaceId: new Types.ObjectId(req.params.workspaceId as string),
       budgetLimitId: req.params.budgetLimitId as string,
+    });
+    publishBudgetLimitEvent("deleted", {
+      workspaceId: req.params.workspaceId as string,
+      budgetLimitId: result._id.toString(),
+      category: result.category,
+      limit: result.limit,
+      actor: {
+        userId: req.user.userId,
+        email: req.user.email,
+      },
     });
 
     return res.status(200).json({

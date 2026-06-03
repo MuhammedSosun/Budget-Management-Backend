@@ -30,7 +30,7 @@ export class WorkspaceInvitationService {
     private readonly workspaceInvitationRepository: IWorkspaceInvitationRepository,
     private readonly workspaceMemberRepository: IWorkspaceMemberRepository,
     private readonly userRepository: IUserRepository,
-  ) {}
+  ) { }
 
   async createWorkspaceInvitation({
     workspaceId,
@@ -90,6 +90,7 @@ export class WorkspaceInvitationService {
     return {
       id: invitation._id.toString(),
       workspaceId: invitation.workspaceId.toString(),
+      invitedUserId: invitedUserId.toString(),
       email: invitation.email,
       role: invitation.role,
       invitedBy: invitation.invitedBy.toString(),

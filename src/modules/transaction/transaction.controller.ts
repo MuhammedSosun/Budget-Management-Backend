@@ -18,6 +18,14 @@ const transactionService = new TransactionService(
   transactionRepo,
   budgetUsageService,
 );
+const getYearMonth = (date: Date | string) => {
+  const parsedDate = new Date(date);
+
+  const year = parsedDate.getFullYear();
+  const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
+
+  return `${year}-${month}`;
+};
 
 export const createTransaction = async (
   req: Request,
@@ -33,6 +41,7 @@ export const createTransaction = async (
       createdBy,
       req.body,
     );
+
 
     publishTransactionEvent({
       workspaceId,
@@ -108,6 +117,8 @@ export const deleteTransaction = async (
       workspaceId,
     );
 
+
+
     publishTransactionEvent({
       workspaceId,
       action: "deleted",
@@ -141,7 +152,6 @@ export const updateTransaction = async (
       workspaceId,
       req.body,
     );
-
     publishTransactionEvent({
       workspaceId,
       action: "updated",

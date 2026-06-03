@@ -43,7 +43,7 @@ export class WorkspaceService {
     private readonly transactionRepository: ITransactionRepository,
     private readonly budgetLimitRepository: IBudgetLimitRepository,
     private readonly budgetUsageService: BudgetUsageService,
-  ) {}
+  ) { }
 
   async createDefaultWorkspaceForUser({
     userId,
@@ -148,9 +148,7 @@ export class WorkspaceService {
       throw new AppError(ErrorCode.WORKSPACE_NOT_FOUND, 404);
     }
 
-    if (workspace.isDefault) {
-      throw new AppError(ErrorCode.DEFAULT_WORKSPACE_CANNOT_BE_DELETED, 400);
-    }
+
 
     const ownerMembership = await this.workspaceMemberRepository.findOne({
       workspaceId,

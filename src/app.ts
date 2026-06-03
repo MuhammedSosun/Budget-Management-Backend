@@ -10,7 +10,8 @@ import { errorHandler } from "./middlewares/errors/error.middleware";
 import { idempotencyMiddleware } from "./middlewares/Auth/idempotency.middleware";
 import path from "path";
 import { ErrorCode } from "./exceptions/ErrorCodes";
-
+import { registerNotificationEventHandlers } from "./modules/notification/notification.event-handlers";
+import { registerBudgetLimitEventHandlers } from "./modules/budget-limit/budget-limit.event-handlers";
 dotenv.config();
 
 const app: Application = express();
@@ -107,6 +108,8 @@ app.use("/api/auth/resend-verification", mailLimiter);
 
 app.use("/api", idempotencyMiddleware);
 
+registerBudgetLimitEventHandlers();
+registerNotificationEventHandlers();
 setRoutes(app);
 
 app.use(notFoundHandler);

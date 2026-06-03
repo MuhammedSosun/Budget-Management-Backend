@@ -123,4 +123,13 @@ export const ErrorMessages: Record<ErrorCode, string> = {
   [ErrorCode.PASSWORD_RESET_TOKEN_INVALID]:
     "Invalid or expired password reset token.",
   [ErrorCode.PASSWORD_RESET_TOKEN_EXPIRED]: "Password Reset Token is Expired",
+
+  [ErrorCode.NOTIFICATION_NOT_FOUND]: "Notification not found.",
+  [ErrorCode.NOTIFICATION_DELETE_FAILED]: "Failed to delete notification.",
+  [ErrorCode.NOTIFICATION_MARK_AS_READ_FAILED]: "Failed to mark as read.",
+  [ErrorCode.NOTIFICATION_MARK_ALL_AS_READ_FAILED]:
+    "Failed to mark all as read.",
+  [ErrorCode.NOTIFICATION_GET_FAILED]: "Failed to get notifications.",
+  [ErrorCode.NOTIFICATION_GET_UNREAD_FAILED]: "Failed to get unread notifications.",
+  [ErrorCode.NOTIFICATION_CREATE_FAILED]: "Failed to create notification.",
 };
