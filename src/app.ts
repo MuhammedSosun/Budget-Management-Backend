@@ -60,7 +60,13 @@ const refreshLimiter = rateLimit({
   legacyHeaders: false,
   handler: createRateLimitHandler(ErrorCode.RATE_LIMIT_REFRESH),
 });
-
+const aiReviewLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: process.env.NODE_ENV === "development" ? 20 : 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: createRateLimitHandler(ErrorCode.RATE_LIMIT_AI_REVIEW),
+});
 const allowedOrigins = [
   "http://localhost:5173",
   "http://dev.butcemx.com:5173",
@@ -106,7 +112,14 @@ app.use("/api/auth/refresh-token", refreshLimiter);
 app.use("/api/auth/verify-email", strictLimiter);
 app.use("/api/auth/resend-verification", mailLimiter);
 
+app.use(
+  "/api/workspaces/:workspaceId/ai-review/monthly",
+  aiReviewLimiter,
+);
+
 app.use("/api", idempotencyMiddleware);
+
+setRoutes(app);
 
 registerBudgetLimitEventHandlers();
 registerNotificationEventHandlers();

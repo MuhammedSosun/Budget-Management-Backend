@@ -533,3 +533,179 @@ Standart hata response yapısı:
   "message": "Error message",
   "statusCode": 400
 }
+
+
+# Notification System
+
+Bu geliştirme kapsamında projeye workspace tabanlı bir bildirim sistemi eklendi.
+
+## Amaç
+
+Kullanıcıların workspace içinde gerçekleşen önemli işlemlerden haberdar olması hedeflendi. Bildirimler hem backend tarafında event-driven bir yapı ile üretiliyor hem de frontend tarafında header bell, dropdown ve bildirim sayfası üzerinden görüntüleniyor.
+
+## Backend Geliştirmeleri
+
+Backend tarafında notification sistemi için aşağıdaki yapılar oluşturuldu:
+
+* `NotificationModel`
+* `NotificationRepository`
+* `NotificationService`
+* `NotificationController`
+* `NotificationRoutes`
+* `NotificationEventHandlers`
+* `NotificationRecipientService`
+
+Bildirimler repository pattern yapısına uygun şekilde geliştirildi.
+
+## Event-Driven Yapı
+
+Notification sistemi doğrudan controller içinde manuel bildirim oluşturmak yerine event mantığıyla çalışacak şekilde tasarlandı.
+
+Örnek akış:
+
+```txt
+Transaction oluşturulur
+↓
+EventBus üzerinden event yayınlanır
+↓
+Notification event handler olayı yakalar
+↓
+İlgili workspace üyeleri bulunur
+↓
+Notification kayıtları oluşturulur
+```
+
+Bu yapı observer pattern mantığına uygun şekilde kuruldu.
+
+## Desteklenen Bildirim Türleri
+
+Aşağıdaki olaylar için bildirim üretimi desteklendi:
+
+```txt
+BUDGET_LIMIT_CREATED
+BUDGET_LIMIT_UPDATED
+BUDGET_LIMIT_DELETED
+BUDGET_LIMIT_WARNING
+BUDGET_LIMIT_EXCEEDED
+
+TRANSACTION_CREATED
+TRANSACTION_UPDATED
+TRANSACTION_DELETED
+
+WORKSPACE_MEMBER_JOINED
+WORKSPACE_MEMBER_REMOVED
+WORKSPACE_MEMBER_LEFT
+WORKSPACE_MEMBER_ROLE_UPDATED
+
+WORKSPACE_INVITATION_CREATED
+WORKSPACE_INVITATION_ACCEPTED
+WORKSPACE_INVITATION_REJECTED
+```
+
+## Workspace Üyelerine Bildirim Gönderimi
+
+Bildirimler workspace bazlı çalışır. İlgili event oluştuğunda sistem workspace üyelerini bulur ve bildirimi uygun kullanıcılara gönderir.
+
+Bazı işlemlerde bildirimi yapan kullanıcı hariç tutulur. Örneğin:
+
+```txt
+Bir kullanıcı transaction eklerse bildirim diğer workspace üyelerine gider.
+```
+
+Bazı sistemsel uyarılarda ise kullanıcı dahil tüm workspace üyeleri bilgilendirilir. Örneğin:
+
+```txt
+Bütçe limiti aşıldığında tüm workspace üyelerine bildirim gider.
+```
+
+## Duplicate Bildirim Önleme
+
+Aynı olay için gereksiz tekrar bildirim oluşmasını engellemek amacıyla `dedupeKey` yapısı eklendi.
+
+Örneğin aynı ay, aynı workspace, aynı kategori için tekrar tekrar bütçe aşımı bildirimi oluşması engellenir.
+
+## Bildirimlerin Saklanması
+
+Bildirimler MongoDB üzerinde saklanır. Her bildirim için `expiresAt` alanı kullanılır ve TTL index ile bildirimlerin belirli süre sonra otomatik silinmesi sağlanır.
+
+Varsayılan saklama süresi:
+
+```txt
+90 gün
+```
+
+## Çoklu Dil Desteği
+
+Backend tarafında artık statik `title` ve `message` metni tutulmaz.
+
+Bunun yerine bildirimler şu alanlarla kaydedilir:
+
+```txt
+titleKey
+messageKey
+messageParams
+```
+
+Frontend tarafında bu key değerleri i18n sistemiyle çevrilir.
+
+Bu sayede kullanıcı dili Türkçe ise bildirim Türkçe, İngilizce ise İngilizce gösterilir.
+
+Örnek:
+
+```json
+{
+  "titleKey": "notification_message.budget_limit_exceeded.title",
+  "messageKey": "notification_message.budget_limit_exceeded.message",
+  "messageParams": {
+    "category": "food"
+  }
+}
+```
+
+## Frontend Geliştirmeleri
+
+Frontend tarafında aşağıdaki yapılar oluşturuldu:
+
+* `NotificationBell`
+* `NotificationDropdown`
+* `NotificationItem`
+* `NotificationsPage`
+* `useNotifications`
+* `notification.service.ts`
+* `notification.types.ts`
+
+## Header Notification Bell
+
+Header içerisine notification bell eklendi.
+
+Özellikler:
+
+```txt
+Okunmamış bildirim sayısı gösterilir.
+Tıklanınca son bildirimler dropdown içinde gösterilir.
+Bildirim okundu olarak işaretlenebilir.
+Tüm bildirimler sayfasına geçiş yapılabilir.
+```
+
+## Notifications Page
+
+Bildirimler için ayrı bir sayfa oluşturuldu.
+
+Sayfada:
+
+```txt
+Tüm bildirimler listelenir.
+Okunmuş / okunmamış filtreleri bulunur.
+Pagination desteklenir.
+Tümünü okundu yap işlemi yapılabilir.
+```
+
+## Header Count Güncellemesi
+
+Bildirim sayfasında bir bildirim okundu yapıldığında header’daki bell count değerinin güncel kalması için frontend tarafında küçük bir notification change event yapısı eklendi.
+
+Bu sayede farklı component’lerde yapılan bildirim değişiklikleri header bell tarafından algılanır.
+
+## Sonuç
+
+Bu geliştirme ile proje içerisinde merkezi, event-driven, workspace tabanlı ve çoklu dil destekli bir notification sistemi kurulmuştur.

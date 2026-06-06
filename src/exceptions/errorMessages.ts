@@ -132,4 +132,5 @@ export const ErrorMessages: Record<ErrorCode, string> = {
   [ErrorCode.NOTIFICATION_GET_FAILED]: "Failed to get notifications.",
   [ErrorCode.NOTIFICATION_GET_UNREAD_FAILED]: "Failed to get unread notifications.",
   [ErrorCode.NOTIFICATION_CREATE_FAILED]: "Failed to create notification.",
+  [ErrorCode.RATE_LIMIT_AI_REVIEW]: "Rate limit ai review"
 };
