@@ -1,3 +1,6 @@
+Frontend erişim linki
+https://github.com/MuhammedSosun/Budget-Management-Frontend
+
 ## Profile and Sidebar
 Bu geliştirmede kullanıcı profil yönetimi ve uygulama navigasyonu iyileştirildi.
 
